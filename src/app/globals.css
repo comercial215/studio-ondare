@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f6fa;
+  --surface: #ffffff;
+  --foreground: #16233d;
+  --muted: #5b6b85;
+  --border: #dde3ee;
+  --navy-950: #0b1830;
+  --navy-900: #10233f;
+  --navy-800: #16304f;
+  --navy-700: #1e3a5f;
+  --navy-600: #2b4d78;
+  --navy-500: #3d6396;
+  --accent: #2b4d78;
+  --alert: #c0442c;
+  --alert-bg: #fdece8;
+  --success: #1f7a52;
+  --warning: #b3791a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-navy-950: var(--navy-950);
+  --color-navy-900: var(--navy-900);
+  --color-navy-800: var(--navy-800);
+  --color-navy-700: var(--navy-700);
+  --color-navy-600: var(--navy-600);
+  --color-navy-500: var(--navy-500);
+  --color-accent: var(--accent);
+  --color-alert: var(--alert);
+  --color-alert-bg: var(--alert-bg);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --font-sans: var(--font-sans);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--navy-700);
+  color: white;
+}
