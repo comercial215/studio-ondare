@@ -37,6 +37,7 @@ export default function WorkspacesPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- busca inicial da lista
     carregar();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -74,7 +75,7 @@ export default function WorkspacesPage() {
     <div className="mx-auto max-w-4xl p-6">
       <h1 className="mb-1 text-xl font-semibold text-navy-900">Clientes</h1>
       <p className="mb-6 text-sm text-muted">
-        Cada cliente novo já nasce com quadro e as 6 colunas padrão. O MRR soma o valor de contrato dos clientes com status "ativo".
+        Cada cliente novo já nasce com quadro e as 6 colunas padrão. O MRR soma o valor de contrato dos clientes com status &quot;ativo&quot;.
       </p>
 
       <form onSubmit={criar} className="mb-6 flex flex-wrap items-end gap-2 rounded-xl border border-border bg-white p-4">

@@ -285,7 +285,7 @@ export default function TaskModal({
             </Field>
 
             {statusAprovacao === "ajuste_solicitado" && statusAprovacao !== statusAprovacaoOriginal && (
-              <p className="text-xs text-muted">Pedir ajuste move o card para "Ajustes Solicitados" e exige um comentário abaixo.</p>
+              <p className="text-xs text-muted">Pedir ajuste move o card para &quot;Ajustes Solicitados&quot; e exige um comentário abaixo.</p>
             )}
 
             <div className="mt-2 border-t border-border pt-3">

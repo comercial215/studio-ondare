@@ -11,7 +11,6 @@ export default function TeamPage() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [cargo, setCargo] = useState("");
-  const [editando, setEditando] = useState<string | null>(null);
 
   async function carregar() {
     const { data } = await supabase.from("team_members").select("*").order("nome");
@@ -20,6 +19,7 @@ export default function TeamPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- busca inicial da lista
     carregar();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -41,7 +41,7 @@ export default function TeamPage() {
   return (
     <div className="mx-auto max-w-3xl p-6">
       <h1 className="mb-1 text-xl font-semibold text-navy-900">Time</h1>
-      <p className="mb-6 text-sm text-muted">Membros disponíveis no seletor de "Responsável" das tarefas.</p>
+      <p className="mb-6 text-sm text-muted">Membros disponíveis no seletor de &quot;Responsável&quot; das tarefas.</p>
 
       <form onSubmit={adicionar} className="mb-6 flex flex-wrap items-end gap-2 rounded-xl border border-border bg-white p-4">
         <div className="flex-1 min-w-[140px]">
