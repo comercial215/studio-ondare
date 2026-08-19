@@ -273,8 +273,8 @@ function LinhaWorkspace({
       <td className="px-4 py-2">
         <input
           type="month"
-          defaultValue={dataParaMes(ws.contrato_inicio)}
-          onBlur={(e) => onAtualizar(ws, "contrato_inicio", mesParaData(e.target.value))}
+          value={dataParaMes(ws.contrato_inicio)}
+          onChange={(e) => onAtualizar(ws, "contrato_inicio", mesParaData(e.target.value))}
           className="rounded px-1.5 py-1 text-foreground outline-none [color-scheme:dark] hover:bg-white/8 focus:bg-white/8"
         />
       </td>
@@ -294,8 +294,8 @@ function LinhaWorkspace({
               até
               <input
                 type="month"
-                defaultValue={dataParaMes(ws.contrato_fim)}
-                onBlur={(e) => onAtualizar(ws, "contrato_fim", mesParaData(e.target.value))}
+                value={dataParaMes(ws.contrato_fim)}
+                onChange={(e) => onAtualizar(ws, "contrato_fim", mesParaData(e.target.value))}
                 className="rounded px-1 py-0.5 text-foreground outline-none [color-scheme:dark] hover:bg-white/8 focus:bg-white/8"
               />
             </label>
