@@ -261,7 +261,7 @@ function LinhaWorkspace({
             onChange={(e) => onAtualizar(ws, "cor", e.target.value)}
             className="h-0 w-0 opacity-0"
           />
-          <span className="text-foreground">{ws.nome}</span>
+          <NomeEditavel ws={ws} onAtualizar={onAtualizar} />
         </div>
       </td>
       <td className="px-4 py-2">
@@ -312,5 +312,34 @@ function LinhaWorkspace({
         </Link>
       </td>
     </tr>
+  );
+}
+
+function NomeEditavel({
+  ws,
+  onAtualizar,
+}: {
+  ws: Workspace;
+  onAtualizar: (ws: Workspace, campo: keyof Workspace, valor: string | number | null) => void;
+}) {
+  const [valor, setValor] = useState(ws.nome);
+
+  function salvar() {
+    const limpo = valor.trim();
+    if (!limpo) {
+      setValor(ws.nome);
+      return;
+    }
+    if (limpo !== ws.nome) onAtualizar(ws, "nome", limpo);
+  }
+
+  return (
+    <input
+      value={valor}
+      onChange={(e) => setValor(e.target.value)}
+      onBlur={salvar}
+      onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+      className="min-w-0 flex-1 rounded bg-transparent px-1.5 py-1 text-foreground outline-none hover:bg-white/8 focus:bg-white/8"
+    />
   );
 }
