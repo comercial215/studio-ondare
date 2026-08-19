@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import TaskModal from "@/components/task-modal";
-import { BarraPorPessoa, TabelaPorCliente } from "@/components/dashboard-charts";
+import { BarraPorPessoa, GraficoReceita, TabelaPorCliente } from "@/components/dashboard-charts";
 import type { Column, DashboardMetrics, TeamMember } from "@/lib/types";
 
 type Periodo = "semana" | "mes" | "personalizado";
@@ -39,6 +39,7 @@ export default function DashboardPage() {
     fim: new Date().toISOString().slice(0, 10),
   });
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [receita, setReceita] = useState<{ mes: string; total: number }[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
 
@@ -51,16 +52,17 @@ export default function DashboardPage() {
   const carregar = useCallback(async () => {
     setCarregando(true);
     setErro(false);
-    const { data, error } = await supabase.rpc("get_dashboard_metrics", {
-      p_data_inicio: inicio,
-      p_data_fim: fim,
-      p_workspace_id: null,
-    });
-    if (error || !data) {
+    const [metricasResp, receitaResp] = await Promise.all([
+      supabase.rpc("get_dashboard_metrics", { p_data_inicio: inicio, p_data_fim: fim, p_workspace_id: null }),
+      supabase.rpc("get_receita_historica", { p_data_inicio: inicio, p_data_fim: fim }),
+    ]);
+
+    if (metricasResp.error || !metricasResp.data) {
       setErro(true);
     } else {
-      setMetrics(data as DashboardMetrics);
+      setMetrics(metricasResp.data as DashboardMetrics);
     }
+    setReceita((receitaResp.data as { mes: string; total: number }[]) ?? []);
     setCarregando(false);
   }, [inicio, fim]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -143,6 +145,20 @@ export default function DashboardPage() {
                 {metrics.mrr_total === null ? "—" : formatoMoeda.format(metrics.mrr_total)}
               </p>
             </section>
+
+            {/* Ganhos — histórico de receita no período selecionado */}
+            <Painel
+              titulo="Ganhos"
+              subtitulo={
+                periodo === "semana"
+                  ? "receita de contratos ativos nesta semana"
+                  : periodo === "mes"
+                  ? "receita de contratos ativos neste mês"
+                  : "receita de contratos ativos no período"
+              }
+            >
+              <GraficoReceita dados={receita} />
+            </Painel>
 
             {/* Bloco 2 — Controle diário */}
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

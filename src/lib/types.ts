@@ -22,6 +22,8 @@ export interface Workspace {
   logo_url: string | null;
   valor_contrato_mensal: number | null;
   status_contrato: StatusContrato;
+  contrato_inicio: string | null;
+  contrato_fim: string | null;
   criado_em: string;
 }
 

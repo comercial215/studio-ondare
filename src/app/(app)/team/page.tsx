@@ -47,8 +47,9 @@ export default function TeamPage() {
       const url = await uploadImagem(supabase, "avatars", arquivo);
       await supabase.from("team_members").update({ avatar_url: url }).eq("id", membro.id);
       setMembros((prev) => prev.map((m) => (m.id === membro.id ? { ...m, avatar_url: url } : m)));
-    } catch {
-      alert("Não foi possível enviar a foto. Tente uma imagem menor (JPG ou PNG).");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "erro desconhecido";
+      alert(`Não foi possível enviar a foto: ${msg}`);
     } finally {
       setEnviandoFoto(null);
     }

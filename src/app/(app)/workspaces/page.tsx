@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { uploadImagem } from "@/lib/upload";
+import { extrairCorDominante } from "@/lib/image";
 import Avatar from "@/components/avatar";
 import type { StatusContrato, Workspace } from "@/lib/types";
 
@@ -21,6 +22,14 @@ function slugify(texto: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function dataParaMes(data: string | null) {
+  return data ? data.slice(0, 7) : "";
+}
+
+function mesParaData(mes: string) {
+  return mes ? `${mes}-01` : null;
+}
+
 const CORES = ["#1e3a5f", "#2b4d78", "#b3791a", "#1f7a52", "#7a3b8f", "#c0442c", "#3d6396", "#5b6b85"];
 
 export default function WorkspacesPage() {
@@ -30,6 +39,7 @@ export default function WorkspacesPage() {
   const [nome, setNome] = useState("");
   const [valor, setValor] = useState("");
   const [statusContrato, setStatusContrato] = useState<StatusContrato>("ativo");
+  const [inicio, setInicio] = useState(() => new Date().toISOString().slice(0, 7));
   const [erro, setErro] = useState<string | null>(null);
 
   async function carregar() {
@@ -55,6 +65,7 @@ export default function WorkspacesPage() {
       cor,
       valor_contrato_mensal: valor ? Number(valor) : null,
       status_contrato: statusContrato,
+      contrato_inicio: mesParaData(inicio),
     });
 
     if (error) {
@@ -65,6 +76,7 @@ export default function WorkspacesPage() {
     setNome("");
     setValor("");
     setStatusContrato("ativo");
+    setInicio(new Date().toISOString().slice(0, 7));
     carregar();
   }
 
@@ -78,20 +90,28 @@ export default function WorkspacesPage() {
   async function trocarLogo(ws: Workspace, arquivo: File) {
     setEnviandoLogo(ws.id);
     try {
-      const url = await uploadImagem(supabase, "logos", arquivo);
-      await atualizar(ws, "logo_url", url);
-    } catch {
-      alert("Não foi possível enviar a logo. Tente uma imagem menor (JPG ou PNG).");
+      const [url, corDominante] = await Promise.all([
+        uploadImagem(supabase, "logos", arquivo),
+        extrairCorDominante(arquivo),
+      ]);
+      const payload: Partial<Workspace> = { logo_url: url };
+      if (corDominante) payload.cor = corDominante;
+      await supabase.from("workspaces").update(payload).eq("id", ws.id);
+      setWorkspaces((prev) => prev.map((w) => (w.id === ws.id ? { ...w, ...payload } : w)));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "erro desconhecido";
+      alert(`Não foi possível enviar a logo: ${msg}`);
     } finally {
       setEnviandoLogo(null);
     }
   }
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
+    <div className="mx-auto max-w-5xl p-6">
       <h1 className="mb-1 text-xl font-semibold text-foreground">Clientes</h1>
       <p className="mb-6 text-sm text-muted">
-        Cada cliente novo já nasce com quadro e as 6 colunas padrão. O MRR soma o valor de contrato dos clientes com status &quot;ativo&quot;.
+        Cada cliente novo já nasce com quadro e as 6 colunas padrão. Ao enviar a logo, a cor do ambiente é sugerida automaticamente
+        a partir da imagem (dá pra trocar depois na bolinha de cor).
       </p>
 
       <form onSubmit={criar} className="glass mb-6 flex flex-wrap items-end gap-2 rounded-xl p-4">
@@ -99,7 +119,7 @@ export default function WorkspacesPage() {
           <label className="mb-1 block text-xs font-medium text-foreground/80">Nome do cliente</label>
           <input value={nome} onChange={(e) => setNome(e.target.value)} className="input" required />
         </div>
-        <div className="w-40">
+        <div className="w-36">
           <label className="mb-1 block text-xs font-medium text-foreground/80">Valor mensal (R$)</label>
           <input
             type="number"
@@ -110,7 +130,11 @@ export default function WorkspacesPage() {
             className="input"
           />
         </div>
-        <div className="w-40">
+        <div className="w-36">
+          <label className="mb-1 block text-xs font-medium text-foreground/80">Início do contrato</label>
+          <input type="month" value={inicio} onChange={(e) => setInicio(e.target.value)} className="input [color-scheme:dark]" />
+        </div>
+        <div className="w-36">
           <label className="mb-1 block text-xs font-medium text-foreground/80">Status do contrato</label>
           <select value={statusContrato} onChange={(e) => setStatusContrato(e.target.value as StatusContrato)} className="input">
             <option value="ativo">Ativo</option>
@@ -137,6 +161,7 @@ export default function WorkspacesPage() {
               <tr>
                 <th className="px-4 py-2 font-medium">Cliente</th>
                 <th className="px-4 py-2 font-medium">Valor mensal</th>
+                <th className="px-4 py-2 font-medium">Início</th>
                 <th className="px-4 py-2 font-medium">Contrato</th>
                 <th className="px-4 py-2 font-medium" />
               </tr>
@@ -153,7 +178,7 @@ export default function WorkspacesPage() {
               ))}
               {workspaces.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-6 text-center text-muted">
+                  <td colSpan={5} className="px-4 py-6 text-center text-muted">
                     Nenhum cliente cadastrado ainda.
                   </td>
                 </tr>
@@ -197,6 +222,7 @@ function LinhaWorkspace({
   onTrocarLogo: (ws: Workspace, arquivo: File) => void;
 }) {
   const inputLogo = useRef<HTMLInputElement>(null);
+  const inputCor = useRef<HTMLInputElement>(null);
 
   return (
     <tr className="border-t border-border">
@@ -205,7 +231,7 @@ function LinhaWorkspace({
           <button type="button" onClick={() => inputLogo.current?.click()} className="relative shrink-0" title="Trocar logo">
             <Avatar nome={ws.nome} url={ws.logo_url} tamanho={28} />
             {enviandoLogo && (
-              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-[9px] text-white">
+              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-[9px] text-white">
                 ...
               </span>
             )}
@@ -217,7 +243,20 @@ function LinhaWorkspace({
             className="hidden"
             onChange={(e) => e.target.files?.[0] && onTrocarLogo(ws, e.target.files[0])}
           />
-          <span className="inline-flex h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: ws.cor }} title="Cor do cliente" />
+          <button
+            type="button"
+            onClick={() => inputCor.current?.click()}
+            className="relative inline-flex h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-white/20"
+            style={{ background: ws.cor }}
+            title="Trocar cor do cliente"
+          />
+          <input
+            ref={inputCor}
+            type="color"
+            value={ws.cor}
+            onChange={(e) => onAtualizar(ws, "cor", e.target.value)}
+            className="h-0 w-0 opacity-0"
+          />
           <span className="text-foreground">{ws.nome}</span>
         </div>
       </td>
@@ -232,15 +271,36 @@ function LinhaWorkspace({
         />
       </td>
       <td className="px-4 py-2">
-        <select
-          value={ws.status_contrato}
-          onChange={(e) => onAtualizar(ws, "status_contrato", e.target.value)}
-          className="rounded bg-transparent px-1.5 py-1 text-foreground outline-none hover:bg-white/8"
-        >
-          <option value="ativo">Ativo</option>
-          <option value="pausado">Pausado</option>
-          <option value="encerrado">Encerrado</option>
-        </select>
+        <input
+          type="month"
+          defaultValue={dataParaMes(ws.contrato_inicio)}
+          onBlur={(e) => onAtualizar(ws, "contrato_inicio", mesParaData(e.target.value))}
+          className="rounded px-1.5 py-1 text-foreground outline-none [color-scheme:dark] hover:bg-white/8 focus:bg-white/8"
+        />
+      </td>
+      <td className="px-4 py-2">
+        <div className="flex items-center gap-2">
+          <select
+            value={ws.status_contrato}
+            onChange={(e) => onAtualizar(ws, "status_contrato", e.target.value)}
+            className="rounded bg-transparent px-1.5 py-1 text-foreground outline-none hover:bg-white/8"
+          >
+            <option value="ativo">Ativo</option>
+            <option value="pausado">Pausado</option>
+            <option value="encerrado">Encerrado</option>
+          </select>
+          {ws.status_contrato !== "ativo" && (
+            <label className="flex items-center gap-1 text-xs text-muted">
+              até
+              <input
+                type="month"
+                defaultValue={dataParaMes(ws.contrato_fim)}
+                onBlur={(e) => onAtualizar(ws, "contrato_fim", mesParaData(e.target.value))}
+                className="rounded px-1 py-0.5 text-foreground outline-none [color-scheme:dark] hover:bg-white/8 focus:bg-white/8"
+              />
+            </label>
+          )}
+        </div>
       </td>
       <td className="px-4 py-2 text-right">
         <Link href={`/w/${ws.slug}/board`} className="text-accent-ring hover:underline">

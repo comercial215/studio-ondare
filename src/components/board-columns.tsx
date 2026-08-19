@@ -232,7 +232,7 @@ export default function BoardColumns({
                               const responsavel = teamMembers.find((m) => m.id === tarefa.responsavel_id);
                               return (
                                 <Draggable draggableId={tarefa.id} index={i} key={tarefa.id}>
-                                  {(providedTask) => (
+                                  {(providedTask, snapshot) => (
                                     <div
                                       ref={providedTask.innerRef}
                                       {...providedTask.draggableProps}
@@ -241,10 +241,15 @@ export default function BoardColumns({
                                       tabIndex={0}
                                       onClick={() => setModal({ taskId: tarefa.id, columnId: coluna.id })}
                                       onKeyDown={(e) => e.key === "Enter" && setModal({ taskId: tarefa.id, columnId: coluna.id })}
-                                      style={{ borderLeft: `3px solid ${corDestaque}` }}
-                                      className={`glass cursor-pointer rounded-lg p-3 text-left transition hover:border-border-strong ${
-                                        coluna.is_final ? "opacity-60" : ""
-                                      }`}
+                                      style={{
+                                        ...providedTask.draggableProps.style,
+                                        borderLeft: `3px solid ${corDestaque}`,
+                                      }}
+                                      className={`cursor-pointer rounded-lg p-3 text-left ${
+                                        snapshot.isDragging
+                                          ? "border border-border-strong bg-surface shadow-2xl"
+                                          : "glass transition hover:border-border-strong"
+                                      } ${coluna.is_final ? "opacity-60" : ""}`}
                                     >
                                       <div className="flex items-start gap-2">
                                         <button
