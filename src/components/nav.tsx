@@ -23,7 +23,7 @@ function Logo() {
     <img
       src="/logo.png"
       alt="Studio Ondare"
-      className="h-7 w-auto"
+      className="h-11 w-auto py-1"
       onError={() => setErro(true)}
     />
   );

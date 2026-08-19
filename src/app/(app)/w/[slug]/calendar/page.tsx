@@ -13,7 +13,12 @@ export default async function WorkspaceCalendarPage({ params }: { params: Promis
   if (!user) notFound();
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  const { data: workspace } = await supabase.from("workspaces").select("id, nome, cor").eq("slug", slug).single();
+  const { data: workspace, error: erroWorkspace } = await supabase
+    .from("workspaces")
+    .select("id, nome, cor")
+    .eq("slug", slug)
+    .single();
+  if (erroWorkspace) console.error("Falha ao buscar workspace:", erroWorkspace.message);
   if (!workspace) notFound();
 
   const { data: board } = await supabase.from("boards").select("id").eq("workspace_id", workspace.id).limit(1).single();

@@ -15,10 +15,21 @@ export default async function BoardPage({ params }: { params: Promise<{ slug: st
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
 
-  const { data: workspace } = await supabase.from("workspaces").select("id, nome, cor, logo_url").eq("slug", slug).single();
+  const { data: workspace, error: erroWorkspace } = await supabase
+    .from("workspaces")
+    .select("id, nome, cor, logo_url")
+    .eq("slug", slug)
+    .single();
+  if (erroWorkspace) console.error("Falha ao buscar workspace:", erroWorkspace.message);
   if (!workspace) notFound();
 
-  const { data: board } = await supabase.from("boards").select("id, nome").eq("workspace_id", workspace.id).limit(1).single();
+  const { data: board, error: erroBoard } = await supabase
+    .from("boards")
+    .select("id, nome")
+    .eq("workspace_id", workspace.id)
+    .limit(1)
+    .single();
+  if (erroBoard) console.error("Falha ao buscar board:", erroBoard.message);
   if (!board) notFound();
 
   const { data: columns } = await supabase.from("columns").select("*").eq("board_id", board.id).order("ordem");
