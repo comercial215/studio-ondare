@@ -37,7 +37,11 @@ export default function TeamPage() {
   }
 
   async function salvarEdicao(membro: TeamMember, campo: keyof TeamMember, valor: string) {
-    await supabase.from("team_members").update({ [campo]: valor || null }).eq("id", membro.id);
+    const { error } = await supabase.from("team_members").update({ [campo]: valor || null }).eq("id", membro.id);
+    if (error) {
+      alert(`Não foi possível salvar: ${error.message}`);
+      return;
+    }
     setMembros((prev) => prev.map((m) => (m.id === membro.id ? { ...m, [campo]: valor } : m)));
   }
 

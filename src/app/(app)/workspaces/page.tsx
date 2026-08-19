@@ -81,7 +81,11 @@ export default function WorkspacesPage() {
   }
 
   async function atualizar(ws: Workspace, campo: keyof Workspace, valor: string | number | null) {
-    await supabase.from("workspaces").update({ [campo]: valor }).eq("id", ws.id);
+    const { error } = await supabase.from("workspaces").update({ [campo]: valor }).eq("id", ws.id);
+    if (error) {
+      alert(`Não foi possível salvar: ${error.message}`);
+      return;
+    }
     setWorkspaces((prev) => prev.map((w) => (w.id === ws.id ? { ...w, [campo]: valor } : w)));
   }
 
