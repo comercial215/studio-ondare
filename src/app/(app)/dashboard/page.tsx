@@ -52,17 +52,17 @@ export default function DashboardPage() {
   const carregar = useCallback(async () => {
     setCarregando(true);
     setErro(false);
-    const [metricasResp, receitaResp] = await Promise.all([
-      supabase.rpc("get_dashboard_metrics", { p_data_inicio: inicio, p_data_fim: fim, p_workspace_id: null }),
-      supabase.rpc("get_receita_historica", { p_data_inicio: inicio, p_data_fim: fim }),
-    ]);
+    const { data, error } = await supabase.rpc("get_dashboard_metrics", {
+      p_data_inicio: inicio,
+      p_data_fim: fim,
+      p_workspace_id: null,
+    });
 
-    if (metricasResp.error || !metricasResp.data) {
+    if (error || !data) {
       setErro(true);
     } else {
-      setMetrics(metricasResp.data as DashboardMetrics);
+      setMetrics(data as DashboardMetrics);
     }
-    setReceita((receitaResp.data as { mes: string; total: number }[]) ?? []);
     setCarregando(false);
   }, [inicio, fim]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -70,6 +70,17 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- busca inicial + refetch ao trocar o período
     carregar();
   }, [carregar]);
+
+  // Ganhos: sempre janeiro do ano atual até hoje — independente do filtro de período acima,
+  // pra ir crescendo mês a mês sozinho conforme o ano avança.
+  useEffect(() => {
+    const hoje = new Date();
+    const anoInicio = `${hoje.getFullYear()}-01-01`;
+    const anoFim = hoje.toISOString().slice(0, 10);
+    supabase
+      .rpc("get_receita_historica", { p_data_inicio: anoInicio, p_data_fim: anoFim })
+      .then(({ data }) => setReceita((data as { mes: string; total: number }[]) ?? []));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
@@ -146,17 +157,8 @@ export default function DashboardPage() {
               </p>
             </section>
 
-            {/* Ganhos — histórico de receita no período selecionado */}
-            <Painel
-              titulo="Ganhos"
-              subtitulo={
-                periodo === "semana"
-                  ? "receita de contratos ativos nesta semana"
-                  : periodo === "mes"
-                  ? "receita de contratos ativos neste mês"
-                  : "receita de contratos ativos no período"
-              }
-            >
+            {/* Ganhos — histórico do ano atual, cresce mês a mês sozinho */}
+            <Painel titulo="Ganhos" subtitulo={`receita de contratos ativos, janeiro de ${new Date().getFullYear()} até hoje`}>
               <GraficoReceita dados={receita} />
             </Painel>
 
