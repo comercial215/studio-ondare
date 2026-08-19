@@ -12,6 +12,9 @@
   --navy-700: #1e3a5f;
   --navy-600: #2b4d78;
   --navy-500: #3d6396;
+  --navy-300: #a9bcd6;
+  --navy-100: #d7e0ee;
+  --navy-50: #eef2f8;
   --accent: #2b4d78;
   --alert: #c0442c;
   --alert-bg: #fdece8;
@@ -31,6 +34,9 @@
   --color-navy-700: var(--navy-700);
   --color-navy-600: var(--navy-600);
   --color-navy-500: var(--navy-500);
+  --color-navy-300: var(--navy-300);
+  --color-navy-100: var(--navy-100);
+  --color-navy-50: var(--navy-50);
   --color-accent: var(--accent);
   --color-alert: var(--alert);
   --color-alert-bg: var(--alert-bg);

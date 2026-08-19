@@ -41,7 +41,7 @@ export default function Nav({ profile, workspaces }: NavProps) {
           </Link>
 
           {isAdminOuTime && (
-            <nav className="hidden items-center gap-1 sm:flex">
+            <nav className="flex flex-wrap items-center gap-1">
               <Link href="/dashboard" className={linkClasses("/dashboard")}>
                 Dashboard
               </Link>

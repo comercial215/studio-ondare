@@ -191,6 +191,19 @@ alter table public.tasks enable row level security;
 alter table public.task_comments enable row level security;
 alter table public.task_attachments enable row level security;
 
+-- Concede o acesso básico às tabelas para o papel authenticated.
+-- Sem isso, o Postgres bloqueia a query ANTES das policies de RLS entrarem em ação
+-- (RLS restringe linhas, mas não substitui o GRANT de tabela).
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.profiles to authenticated;
+grant select, insert, update, delete on public.team_members to authenticated;
+grant select, insert, update, delete on public.workspaces to authenticated;
+grant select, insert, update, delete on public.boards to authenticated;
+grant select, insert, update, delete on public.columns to authenticated;
+grant select, insert, update, delete on public.tasks to authenticated;
+grant select, insert, update, delete on public.task_comments to authenticated;
+grant select, insert, update, delete on public.task_attachments to authenticated;
+
 -- Helper: papel e workspace do usuário logado, sem recursão de RLS
 create function public.current_role()
 returns public.user_role

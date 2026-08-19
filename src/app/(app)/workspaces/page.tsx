@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { uploadImagem } from "@/lib/upload";
+import Avatar from "@/components/avatar";
 import type { StatusContrato, Workspace } from "@/lib/types";
 
 const DIACRITICOS = new RegExp(
@@ -71,6 +73,20 @@ export default function WorkspacesPage() {
     setWorkspaces((prev) => prev.map((w) => (w.id === ws.id ? { ...w, [campo]: valor } : w)));
   }
 
+  const [enviandoLogo, setEnviandoLogo] = useState<string | null>(null);
+
+  async function trocarLogo(ws: Workspace, arquivo: File) {
+    setEnviandoLogo(ws.id);
+    try {
+      const url = await uploadImagem(supabase, "logos", arquivo);
+      await atualizar(ws, "logo_url", url);
+    } catch {
+      alert("Não foi possível enviar a logo. Tente uma imagem menor (JPG ou PNG).");
+    } finally {
+      setEnviandoLogo(null);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-4xl p-6">
       <h1 className="mb-1 text-xl font-semibold text-navy-900">Clientes</h1>
@@ -127,38 +143,13 @@ export default function WorkspacesPage() {
             </thead>
             <tbody>
               {workspaces.map((w) => (
-                <tr key={w.id} className="border-t border-border">
-                  <td className="px-4 py-2">
-                    <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: w.cor }} />
-                    {w.nome}
-                  </td>
-                  <td className="px-4 py-2">
-                    <input
-                      type="number"
-                      step="0.01"
-                      defaultValue={w.valor_contrato_mensal ?? ""}
-                      onBlur={(e) => atualizar(w, "valor_contrato_mensal", e.target.value ? Number(e.target.value) : null)}
-                      className="w-28 rounded px-1.5 py-1 outline-none hover:bg-background focus:bg-background"
-                      placeholder="—"
-                    />
-                  </td>
-                  <td className="px-4 py-2">
-                    <select
-                      value={w.status_contrato}
-                      onChange={(e) => atualizar(w, "status_contrato", e.target.value)}
-                      className="rounded px-1.5 py-1 outline-none hover:bg-background"
-                    >
-                      <option value="ativo">Ativo</option>
-                      <option value="pausado">Pausado</option>
-                      <option value="encerrado">Encerrado</option>
-                    </select>
-                  </td>
-                  <td className="px-4 py-2 text-right">
-                    <Link href={`/w/${w.slug}/board`} className="text-navy-600 hover:underline">
-                      Ver quadro →
-                    </Link>
-                  </td>
-                </tr>
+                <LinhaWorkspace
+                  key={w.id}
+                  ws={w}
+                  enviandoLogo={enviandoLogo === w.id}
+                  onAtualizar={atualizar}
+                  onTrocarLogo={trocarLogo}
+                />
               ))}
               {workspaces.length === 0 && (
                 <tr>
@@ -187,5 +178,71 @@ export default function WorkspacesPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+function LinhaWorkspace({
+  ws,
+  enviandoLogo,
+  onAtualizar,
+  onTrocarLogo,
+}: {
+  ws: Workspace;
+  enviandoLogo: boolean;
+  onAtualizar: (ws: Workspace, campo: keyof Workspace, valor: string | number | null) => void;
+  onTrocarLogo: (ws: Workspace, arquivo: File) => void;
+}) {
+  const inputLogo = useRef<HTMLInputElement>(null);
+
+  return (
+    <tr className="border-t border-border">
+      <td className="px-4 py-2">
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => inputLogo.current?.click()} className="relative shrink-0" title="Trocar logo">
+            <Avatar nome={ws.nome} url={ws.logo_url} tamanho={28} />
+            {enviandoLogo && (
+              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-[9px] text-white">
+                ...
+              </span>
+            )}
+          </button>
+          <input
+            ref={inputLogo}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => e.target.files?.[0] && onTrocarLogo(ws, e.target.files[0])}
+          />
+          <span className="inline-flex h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: ws.cor }} title="Cor do cliente" />
+          {ws.nome}
+        </div>
+      </td>
+      <td className="px-4 py-2">
+        <input
+          type="number"
+          step="0.01"
+          defaultValue={ws.valor_contrato_mensal ?? ""}
+          onBlur={(e) => onAtualizar(ws, "valor_contrato_mensal", e.target.value ? Number(e.target.value) : null)}
+          className="w-28 rounded px-1.5 py-1 outline-none hover:bg-background focus:bg-background"
+          placeholder="—"
+        />
+      </td>
+      <td className="px-4 py-2">
+        <select
+          value={ws.status_contrato}
+          onChange={(e) => onAtualizar(ws, "status_contrato", e.target.value)}
+          className="rounded px-1.5 py-1 outline-none hover:bg-background"
+        >
+          <option value="ativo">Ativo</option>
+          <option value="pausado">Pausado</option>
+          <option value="encerrado">Encerrado</option>
+        </select>
+      </td>
+      <td className="px-4 py-2 text-right">
+        <Link href={`/w/${ws.slug}/board`} className="text-navy-600 hover:underline">
+          Ver quadro →
+        </Link>
+      </td>
+    </tr>
   );
 }

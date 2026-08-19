@@ -19,6 +19,7 @@ export interface Workspace {
   slug: string;
   status: "ativo" | "inativo";
   cor: string;
+  logo_url: string | null;
   valor_contrato_mensal: number | null;
   status_contrato: StatusContrato;
   criado_em: string;
@@ -45,6 +46,7 @@ export interface TeamMember {
   nome: string;
   email: string;
   cargo: string | null;
+  avatar_url: string | null;
 }
 
 export interface Task {

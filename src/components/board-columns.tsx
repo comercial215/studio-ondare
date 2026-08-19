@@ -4,6 +4,7 @@ import { useState } from "react";
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { createClient } from "@/lib/supabase/client";
 import TaskModal from "./task-modal";
+import Avatar from "./avatar";
 import type { Column, Task, TeamMember, UserRole } from "@/lib/types";
 
 interface BoardColumnsProps {
@@ -120,6 +121,24 @@ export default function BoardColumns({
     setEditandoColuna(null);
   }
 
+  async function alternarConclusao(tarefa: Task, colunaAtual: Column) {
+    const destino = colunaAtual.is_final
+      ? columns.find((c) => !c.is_final)
+      : columns.find((c) => c.is_final);
+    if (!destino) return;
+
+    const novaPosicao = (tasksPorColuna[destino.id] ?? []).length;
+
+    setTasksPorColuna((prev) => {
+      const novo = { ...prev };
+      novo[colunaAtual.id] = novo[colunaAtual.id].filter((t) => t.id !== tarefa.id);
+      novo[destino.id] = [...(novo[destino.id] ?? []), { ...tarefa, column_id: destino.id }];
+      return novo;
+    });
+
+    await supabase.from("tasks").update({ column_id: destino.id, posicao: novaPosicao }).eq("id", tarefa.id);
+  }
+
   async function excluirColuna(coluna: Column) {
     if (coluna.is_final) {
       alert('A coluna final ("Concluído") não pode ser excluída.');
@@ -205,35 +224,72 @@ export default function BoardColumns({
                             {...providedList.droppableProps}
                             className="flex min-h-[80px] flex-1 flex-col gap-2 p-2"
                           >
-                            {(tasksPorColuna[coluna.id] ?? []).map((tarefa, i) => (
-                              <Draggable draggableId={tarefa.id} index={i} key={tarefa.id}>
-                                {(providedTask) => (
-                                  <button
-                                    ref={providedTask.innerRef}
-                                    {...providedTask.draggableProps}
-                                    {...providedTask.dragHandleProps}
-                                    onClick={() => setModal({ taskId: tarefa.id, columnId: coluna.id })}
-                                    className="rounded-lg border border-border bg-white p-3 text-left shadow-sm transition hover:shadow-md"
-                                  >
-                                    <p className="text-sm font-medium text-navy-900">{tarefa.titulo}</p>
-                                    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted">
-                                      {tarefa.prazo && (
-                                        <span
-                                          className={
-                                            !tarefa.data_conclusao_real && tarefa.prazo < new Date().toISOString().slice(0, 10)
-                                              ? "font-medium text-alert"
-                                              : ""
-                                          }
+                            {(tasksPorColuna[coluna.id] ?? []).map((tarefa, i) => {
+                              const responsavel = teamMembers.find((m) => m.id === tarefa.responsavel_id);
+                              return (
+                                <Draggable draggableId={tarefa.id} index={i} key={tarefa.id}>
+                                  {(providedTask) => (
+                                    <div
+                                      ref={providedTask.innerRef}
+                                      {...providedTask.draggableProps}
+                                      {...providedTask.dragHandleProps}
+                                      role="button"
+                                      tabIndex={0}
+                                      onClick={() => setModal({ taskId: tarefa.id, columnId: coluna.id })}
+                                      onKeyDown={(e) => e.key === "Enter" && setModal({ taskId: tarefa.id, columnId: coluna.id })}
+                                      className={`cursor-pointer rounded-lg border border-border bg-white p-3 text-left shadow-sm transition hover:shadow-md ${
+                                        coluna.is_final ? "opacity-60" : ""
+                                      }`}
+                                    >
+                                      <div className="flex items-start gap-2">
+                                        <button
+                                          type="button"
+                                          title={coluna.is_final ? "Reabrir tarefa" : "Concluir tarefa"}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            alternarConclusao(tarefa, coluna);
+                                          }}
+                                          className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold transition ${
+                                            coluna.is_final
+                                              ? "border-success bg-success text-white"
+                                              : "border-border text-transparent hover:border-success"
+                                          }`}
                                         >
-                                          {new Date(tarefa.prazo + "T00:00:00").toLocaleDateString("pt-BR")}
-                                        </span>
-                                      )}
-                                      {tarefa.canal_plataforma && <span>· {tarefa.canal_plataforma}</span>}
+                                          ✓
+                                        </button>
+                                        <div className="min-w-0 flex-1">
+                                          <p
+                                            className={`text-sm font-medium ${
+                                              coluna.is_final ? "text-muted line-through" : "text-navy-900"
+                                            }`}
+                                          >
+                                            {tarefa.titulo}
+                                          </p>
+                                          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted">
+                                            {tarefa.prazo && (
+                                              <span
+                                                className={
+                                                  !tarefa.data_conclusao_real &&
+                                                  tarefa.prazo < new Date().toISOString().slice(0, 10)
+                                                    ? "font-medium text-alert"
+                                                    : ""
+                                                }
+                                              >
+                                                {new Date(tarefa.prazo + "T00:00:00").toLocaleDateString("pt-BR")}
+                                              </span>
+                                            )}
+                                            {tarefa.canal_plataforma && <span>· {tarefa.canal_plataforma}</span>}
+                                          </div>
+                                        </div>
+                                        {responsavel && (
+                                          <Avatar nome={responsavel.nome} url={responsavel.avatar_url} tamanho={22} />
+                                        )}
+                                      </div>
                                     </div>
-                                  </button>
-                                )}
-                              </Draggable>
-                            ))}
+                                  )}
+                                </Draggable>
+                              );
+                            })}
                             {providedList.placeholder}
                           </div>
                         )}
