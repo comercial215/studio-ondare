@@ -33,9 +33,9 @@ export default async function WorkspaceCalendarPage({ params }: { params: Promis
 
   return (
     <div>
-      <div className="border-b border-border bg-white px-6 py-3">
+      <div className="glass rounded-none border-x-0 border-t-0 px-6 py-3">
         <p className="text-sm text-muted">Calendário do cliente</p>
-        <h2 className="text-lg font-semibold text-navy-900">{workspace.nome}</h2>
+        <h2 className="text-lg font-semibold text-foreground">{workspace.nome}</h2>
       </div>
       <CalendarView
         tasks={tasks}

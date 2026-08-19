@@ -1,25 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f6fa;
-  --surface: #ffffff;
-  --foreground: #16233d;
-  --muted: #5b6b85;
-  --border: #dde3ee;
+  --background: #070c14;
+  --surface: #101a28;
+  --foreground: #e8edf6;
+  --muted: #8b9bb8;
+  --border: rgba(233, 238, 248, 0.12);
+  --border-strong: rgba(233, 238, 248, 0.22);
+
   --navy-950: #0b1830;
   --navy-900: #10233f;
   --navy-800: #16304f;
   --navy-700: #1e3a5f;
   --navy-600: #2b4d78;
   --navy-500: #3d6396;
-  --navy-300: #a9bcd6;
-  --navy-100: #d7e0ee;
-  --navy-50: #eef2f8;
-  --accent: #2b4d78;
-  --alert: #c0442c;
-  --alert-bg: #fdece8;
-  --success: #1f7a52;
-  --warning: #b3791a;
+  --navy-300: #6f88ab;
+  --navy-100: #b8c6de;
+  --navy-50: #dbe4f0;
+
+  --accent: #012732;
+  --accent-hover: #073e4d;
+  --accent-ring: #2f8fae;
+
+  --glass-bg: rgba(16, 26, 40, 0.55);
+  --glass-bg-strong: rgba(16, 26, 40, 0.78);
+  --glass-border: rgba(233, 238, 248, 0.14);
+
+  --alert: #ff6b52;
+  --alert-bg: rgba(255, 107, 82, 0.14);
+  --success: #34d399;
+  --success-bg: rgba(52, 211, 153, 0.14);
+  --warning: #fbbf24;
 }
 
 @theme inline {
@@ -28,6 +39,8 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
   --color-navy-950: var(--navy-950);
   --color-navy-900: var(--navy-900);
   --color-navy-800: var(--navy-800);
@@ -37,10 +50,18 @@
   --color-navy-300: var(--navy-300);
   --color-navy-100: var(--navy-100);
   --color-navy-50: var(--navy-50);
+
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ring: var(--accent-ring);
+
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+
   --color-alert: var(--alert);
   --color-alert-bg: var(--alert-bg);
   --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
   --color-warning: var(--warning);
   --font-sans: var(--font-sans);
 }
@@ -51,7 +72,50 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+/* Marca d'água — onda do Studio Ondare, atrás de todo o conteúdo.
+   Coloque o arquivo em public/watermark.png quando tiver a imagem —
+   até lá isso simplesmente não mostra nada (sem quebrar o layout). */
+.watermark {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("/watermark.png");
+  background-repeat: no-repeat;
+  background-position: center 65%;
+  background-size: min(1400px, 140vw);
+  opacity: 0.035;
+}
+
+.app-content {
+  position: relative;
+  z-index: 1;
+}
+
 ::selection {
-  background: var(--navy-700);
+  background: var(--accent-ring);
   color: white;
+}
+
+/* Vidrismo — usar em cards, modais, painéis e menus que flutuam sobre o fundo */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+  }
 }

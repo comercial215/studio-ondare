@@ -72,11 +72,11 @@ export default function CalendarView({
   return (
     <div className="p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-navy-900">
+        <h1 className="text-xl font-semibold text-foreground">
           {MESES[mes]} {ano}
         </h1>
         <div className="flex gap-2">
-          <button onClick={() => mudarMes(-1)} className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-white">
+          <button onClick={() => mudarMes(-1)} className="rounded-lg border border-border px-3 py-1.5 text-sm text-foreground/80 hover:bg-white/8">
             ← Anterior
           </button>
           <button
@@ -84,11 +84,11 @@ export default function CalendarView({
               setMes(hoje.getMonth());
               setAno(hoje.getFullYear());
             }}
-            className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-white"
+            className="rounded-lg border border-border px-3 py-1.5 text-sm text-foreground/80 hover:bg-white/8"
           >
             Hoje
           </button>
-          <button onClick={() => mudarMes(1)} className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-white">
+          <button onClick={() => mudarMes(1)} className="rounded-lg border border-border px-3 py-1.5 text-sm text-foreground/80 hover:bg-white/8">
             Próximo →
           </button>
         </div>
@@ -97,7 +97,7 @@ export default function CalendarView({
       {mostrarLegenda && legendaWorkspaces.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-3">
           {legendaWorkspaces.map(([nome, cor]) => (
-            <span key={nome} className="flex items-center gap-1.5 text-xs text-navy-800">
+            <span key={nome} className="flex items-center gap-1.5 text-xs text-foreground/80">
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: cor }} />
               {nome}
             </span>
@@ -105,8 +105,8 @@ export default function CalendarView({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-border bg-white">
-        <div className="grid grid-cols-7 border-b border-border bg-navy-900/[0.03]">
+      <div className="glass overflow-hidden rounded-xl">
+        <div className="grid grid-cols-7 border-b border-border bg-black/15">
           {DIAS_SEMANA.map((d) => (
             <div key={d} className="px-2 py-2 text-center text-xs font-medium text-muted">
               {d}
@@ -124,12 +124,12 @@ export default function CalendarView({
               <div
                 key={chave}
                 className={`min-h-[100px] border-b border-r border-border p-1.5 last:border-r-0 ${
-                  doMes ? "bg-white" : "bg-background/60"
+                  doMes ? "" : "bg-black/15"
                 }`}
               >
                 <span
                   className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-                    ehHoje ? "bg-navy-700 text-white" : doMes ? "text-navy-800" : "text-muted/50"
+                    ehHoje ? "bg-accent text-white" : doMes ? "text-foreground/80" : "text-muted/50"
                   }`}
                 >
                   {dia.getDate()}

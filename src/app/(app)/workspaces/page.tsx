@@ -89,18 +89,18 @@ export default function WorkspacesPage() {
 
   return (
     <div className="mx-auto max-w-4xl p-6">
-      <h1 className="mb-1 text-xl font-semibold text-navy-900">Clientes</h1>
+      <h1 className="mb-1 text-xl font-semibold text-foreground">Clientes</h1>
       <p className="mb-6 text-sm text-muted">
         Cada cliente novo já nasce com quadro e as 6 colunas padrão. O MRR soma o valor de contrato dos clientes com status &quot;ativo&quot;.
       </p>
 
-      <form onSubmit={criar} className="mb-6 flex flex-wrap items-end gap-2 rounded-xl border border-border bg-white p-4">
+      <form onSubmit={criar} className="glass mb-6 flex flex-wrap items-end gap-2 rounded-xl p-4">
         <div className="flex-1 min-w-[160px]">
-          <label className="mb-1 block text-xs font-medium text-navy-800">Nome do cliente</label>
+          <label className="mb-1 block text-xs font-medium text-foreground/80">Nome do cliente</label>
           <input value={nome} onChange={(e) => setNome(e.target.value)} className="input" required />
         </div>
         <div className="w-40">
-          <label className="mb-1 block text-xs font-medium text-navy-800">Valor mensal (R$)</label>
+          <label className="mb-1 block text-xs font-medium text-foreground/80">Valor mensal (R$)</label>
           <input
             type="number"
             step="0.01"
@@ -111,29 +111,29 @@ export default function WorkspacesPage() {
           />
         </div>
         <div className="w-40">
-          <label className="mb-1 block text-xs font-medium text-navy-800">Status do contrato</label>
+          <label className="mb-1 block text-xs font-medium text-foreground/80">Status do contrato</label>
           <select value={statusContrato} onChange={(e) => setStatusContrato(e.target.value as StatusContrato)} className="input">
             <option value="ativo">Ativo</option>
             <option value="pausado">Pausado</option>
             <option value="encerrado">Encerrado</option>
           </select>
         </div>
-        <button type="submit" className="rounded-lg bg-navy-700 px-4 py-2 text-sm font-medium text-white hover:bg-navy-800">
+        <button type="submit" className="rounded-lg border border-border-strong bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover">
           Criar cliente
         </button>
       </form>
       {erro && <p className="mb-4 text-sm text-alert">{erro}</p>}
 
-      <div className="overflow-hidden rounded-xl border border-border bg-white">
+      <div className="glass overflow-hidden rounded-xl">
         {carregando ? (
           <div className="space-y-2 p-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-10 animate-pulse rounded bg-background" />
+              <div key={i} className="h-10 animate-pulse rounded bg-white/5" />
             ))}
           </div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-navy-900/[0.03] text-left text-xs text-muted">
+            <thead className="bg-black/15 text-left text-xs text-muted">
               <tr>
                 <th className="px-4 py-2 font-medium">Cliente</th>
                 <th className="px-4 py-2 font-medium">Valor mensal</th>
@@ -168,13 +168,17 @@ export default function WorkspacesPage() {
           width: 100%;
           border-radius: 0.5rem;
           border: 1px solid var(--border);
-          background: white;
+          background: rgba(255, 255, 255, 0.05);
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
+          color: var(--foreground);
           outline: none;
         }
+        .input::placeholder {
+          color: var(--muted);
+        }
         .input:focus {
-          border-color: var(--navy-500);
+          border-color: var(--accent-ring);
         }
       `}</style>
     </div>
@@ -214,7 +218,7 @@ function LinhaWorkspace({
             onChange={(e) => e.target.files?.[0] && onTrocarLogo(ws, e.target.files[0])}
           />
           <span className="inline-flex h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: ws.cor }} title="Cor do cliente" />
-          {ws.nome}
+          <span className="text-foreground">{ws.nome}</span>
         </div>
       </td>
       <td className="px-4 py-2">
@@ -223,7 +227,7 @@ function LinhaWorkspace({
           step="0.01"
           defaultValue={ws.valor_contrato_mensal ?? ""}
           onBlur={(e) => onAtualizar(ws, "valor_contrato_mensal", e.target.value ? Number(e.target.value) : null)}
-          className="w-28 rounded px-1.5 py-1 outline-none hover:bg-background focus:bg-background"
+          className="w-28 rounded px-1.5 py-1 text-foreground outline-none hover:bg-white/8 focus:bg-white/8"
           placeholder="—"
         />
       </td>
@@ -231,7 +235,7 @@ function LinhaWorkspace({
         <select
           value={ws.status_contrato}
           onChange={(e) => onAtualizar(ws, "status_contrato", e.target.value)}
-          className="rounded px-1.5 py-1 outline-none hover:bg-background"
+          className="rounded bg-transparent px-1.5 py-1 text-foreground outline-none hover:bg-white/8"
         >
           <option value="ativo">Ativo</option>
           <option value="pausado">Pausado</option>
@@ -239,7 +243,7 @@ function LinhaWorkspace({
         </select>
       </td>
       <td className="px-4 py-2 text-right">
-        <Link href={`/w/${ws.slug}/board`} className="text-navy-600 hover:underline">
+        <Link href={`/w/${ws.slug}/board`} className="text-accent-ring hover:underline">
           Ver quadro →
         </Link>
       </td>

@@ -86,15 +86,17 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-6xl p-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-navy-900">Visão geral</h1>
+        <h1 className="text-xl font-semibold text-foreground">Visão geral</h1>
 
         <div className="flex flex-wrap items-center gap-2">
           {(["semana", "mes", "personalizado"] as Periodo[]).map((p) => (
             <button
               key={p}
               onClick={() => setPeriodo(p)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                periodo === p ? "bg-navy-700 text-white" : "bg-white text-navy-700 hover:bg-navy-50 border border-border"
+              className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+                periodo === p
+                  ? "border-border-strong bg-accent text-white"
+                  : "border-border text-foreground/80 hover:bg-white/8"
               }`}
             >
               {p === "semana" ? "Esta semana" : p === "mes" ? "Este mês" : "Personalizado"}
@@ -106,14 +108,14 @@ export default function DashboardPage() {
                 type="date"
                 value={personalizado.inicio}
                 onChange={(e) => setPersonalizado((s) => ({ ...s, inicio: e.target.value }))}
-                className="rounded-lg border border-border px-2 py-1 text-sm"
+                className="rounded-lg border border-border bg-white/5 px-2 py-1 text-sm text-foreground [color-scheme:dark]"
               />
               <span className="text-muted">até</span>
               <input
                 type="date"
                 value={personalizado.fim}
                 onChange={(e) => setPersonalizado((s) => ({ ...s, fim: e.target.value }))}
-                className="rounded-lg border border-border px-2 py-1 text-sm"
+                className="rounded-lg border border-border bg-white/5 px-2 py-1 text-sm text-foreground [color-scheme:dark]"
               />
             </div>
           )}
@@ -135,9 +137,9 @@ export default function DashboardPage() {
         metrics && (
           <div className="flex flex-col gap-6">
             {/* Bloco 1 — Previsibilidade financeira */}
-            <section className="rounded-2xl bg-navy-800 p-6 text-white shadow-md">
-              <p className="text-sm text-navy-100/70">Receita Recorrente Mensal · agora</p>
-              <p className="mt-1 text-4xl font-semibold tracking-tight">
+            <section className="glass rounded-2xl border-l-2 border-l-accent-ring p-6 text-foreground">
+              <p className="text-sm text-muted">Receita Recorrente Mensal · agora</p>
+              <p className="mt-1 text-4xl font-semibold tracking-tight tabular-nums">
                 {metrics.mrr_total === null ? "—" : formatoMoeda.format(metrics.mrr_total)}
               </p>
             </section>
@@ -185,10 +187,10 @@ export default function DashboardPage() {
                       <button
                         key={t.task_id}
                         onClick={() => abrirTarefa(t.task_id, t.board_id)}
-                        className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-left text-sm hover:bg-background"
+                        className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-left text-sm hover:bg-white/8"
                       >
                         <span className="truncate">
-                          <span className="font-medium text-navy-900">{t.workspace_nome}</span>
+                          <span className="font-medium text-foreground">{t.workspace_nome}</span>
                           <span className="text-muted"> · {t.titulo}</span>
                         </span>
                         <span
@@ -239,13 +241,11 @@ function Card({
   destaque?: "alerta";
 }) {
   return (
-    <div
-      className={`rounded-2xl border p-5 shadow-sm ${
-        destaque === "alerta" ? "border-alert/30 bg-alert-bg" : "border-border bg-white"
-      }`}
-    >
+    <div className={`glass rounded-2xl p-5 ${destaque === "alerta" ? "border-alert/30 bg-alert-bg" : ""}`}>
       <p className={`text-sm ${destaque === "alerta" ? "text-alert" : "text-muted"}`}>{titulo}</p>
-      <p className={`mt-1 text-3xl font-semibold ${destaque === "alerta" ? "text-alert" : "text-navy-900"}`}>{valor}</p>
+      <p className={`mt-1 text-3xl font-semibold tabular-nums ${destaque === "alerta" ? "text-alert" : "text-foreground"}`}>
+        {valor}
+      </p>
       <p className="mt-1 text-xs text-muted">{rotulo}</p>
     </div>
   );
@@ -253,8 +253,8 @@ function Card({
 
 function Painel({ titulo, subtitulo, children }: { titulo: string; subtitulo: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-navy-900">{titulo}</p>
+    <div className="glass rounded-2xl p-5">
+      <p className="text-sm font-medium text-foreground">{titulo}</p>
       <p className="mb-3 text-xs text-muted">{subtitulo}</p>
       {children}
     </div>
@@ -264,15 +264,15 @@ function Painel({ titulo, subtitulo, children }: { titulo: string; subtitulo: st
 function SkeletonDashboard() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="h-28 animate-pulse rounded-2xl bg-navy-900/10" />
+      <div className="h-28 animate-pulse rounded-2xl bg-white/5" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-28 animate-pulse rounded-2xl bg-navy-900/5" />
+          <div key={i} className="h-28 animate-pulse rounded-2xl bg-white/5" />
         ))}
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-64 animate-pulse rounded-2xl bg-navy-900/5" />
+          <div key={i} className="h-64 animate-pulse rounded-2xl bg-white/5" />
         ))}
       </div>
     </div>

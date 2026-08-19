@@ -63,37 +63,37 @@ export default function TeamPage() {
 
   return (
     <div className="mx-auto max-w-3xl p-6">
-      <h1 className="mb-1 text-xl font-semibold text-navy-900">Time</h1>
+      <h1 className="mb-1 text-xl font-semibold text-foreground">Time</h1>
       <p className="mb-6 text-sm text-muted">Membros disponíveis no seletor de &quot;Responsável&quot; das tarefas.</p>
 
-      <form onSubmit={adicionar} className="mb-6 flex flex-wrap items-end gap-2 rounded-xl border border-border bg-white p-4">
+      <form onSubmit={adicionar} className="glass mb-6 flex flex-wrap items-end gap-2 rounded-xl p-4">
         <div className="flex-1 min-w-[140px]">
-          <label className="mb-1 block text-xs font-medium text-navy-800">Nome</label>
+          <label className="mb-1 block text-xs font-medium text-foreground/80">Nome</label>
           <input value={nome} onChange={(e) => setNome(e.target.value)} className="input" required />
         </div>
         <div className="flex-1 min-w-[160px]">
-          <label className="mb-1 block text-xs font-medium text-navy-800">E-mail</label>
+          <label className="mb-1 block text-xs font-medium text-foreground/80">E-mail</label>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" required />
         </div>
         <div className="flex-1 min-w-[120px]">
-          <label className="mb-1 block text-xs font-medium text-navy-800">Cargo</label>
+          <label className="mb-1 block text-xs font-medium text-foreground/80">Cargo</label>
           <input value={cargo} onChange={(e) => setCargo(e.target.value)} className="input" />
         </div>
-        <button type="submit" className="rounded-lg bg-navy-700 px-4 py-2 text-sm font-medium text-white hover:bg-navy-800">
+        <button type="submit" className="rounded-lg border border-border-strong bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover">
           Adicionar
         </button>
       </form>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-white">
+      <div className="glass overflow-hidden rounded-xl">
         {carregando ? (
           <div className="space-y-2 p-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-10 animate-pulse rounded bg-background" />
+              <div key={i} className="h-10 animate-pulse rounded bg-white/5" />
             ))}
           </div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-navy-900/[0.03] text-left text-xs text-muted">
+            <thead className="bg-black/15 text-left text-xs text-muted">
               <tr>
                 <th className="px-4 py-2 font-medium" />
                 <th className="px-4 py-2 font-medium">Nome</th>
@@ -130,13 +130,17 @@ export default function TeamPage() {
           width: 100%;
           border-radius: 0.5rem;
           border: 1px solid var(--border);
-          background: white;
+          background: rgba(255, 255, 255, 0.05);
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
+          color: var(--foreground);
           outline: none;
         }
+        .input::placeholder {
+          color: var(--muted);
+        }
         .input:focus {
-          border-color: var(--navy-500);
+          border-color: var(--accent-ring);
         }
       `}</style>
     </div>
@@ -169,7 +173,7 @@ function FilaMembro({
         >
           <Avatar nome={membro.nome} url={membro.avatar_url} tamanho={32} />
           {enviando && (
-            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-[9px] text-white">
+            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-[9px] text-white">
               ...
             </span>
           )}
@@ -213,7 +217,7 @@ function EditableCell({
         value={valor}
         onChange={(e) => setValor(e.target.value)}
         onBlur={() => valor !== (membro[campo] ?? "") && onSalvar(membro, campo, valor)}
-        className="w-full rounded px-1.5 py-1 outline-none hover:bg-background focus:bg-background"
+        className="w-full rounded px-1.5 py-1 text-foreground outline-none hover:bg-white/8 focus:bg-white/8"
       />
     </td>
   );

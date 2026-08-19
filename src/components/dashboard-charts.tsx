@@ -11,10 +11,17 @@ export function BarraPorPessoa({ dados }: { dados: { nome: string; total: number
         <XAxis dataKey="nome" tick={{ fontSize: 12, fill: "var(--muted)" }} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
         <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "var(--muted)" }} axisLine={false} tickLine={false} />
         <Tooltip
-          cursor={{ fill: "var(--navy-900)", opacity: 0.05 }}
-          contentStyle={{ borderRadius: 8, border: "1px solid var(--border)", fontSize: 13 }}
+          cursor={{ fill: "var(--foreground)", opacity: 0.06 }}
+          contentStyle={{
+            borderRadius: 8,
+            border: "1px solid var(--glass-border)",
+            background: "var(--glass-bg-strong, var(--surface))",
+            color: "var(--foreground)",
+            fontSize: 13,
+          }}
+          labelStyle={{ color: "var(--foreground)" }}
         />
-        <Bar dataKey="total" name="Tarefas" fill="var(--navy-600)" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="total" name="Tarefas" fill="var(--accent-ring)" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -27,14 +34,14 @@ export function TabelaPorCliente({ dados }: { dados: { workspace_nome: string; t
     <div className="flex flex-col gap-2">
       {dados.map((d) => (
         <div key={d.workspace_nome} className="flex items-center gap-3 text-sm">
-          <span className="w-28 shrink-0 truncate text-navy-800">{d.workspace_nome}</span>
-          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-background">
+          <span className="w-28 shrink-0 truncate text-foreground/80">{d.workspace_nome}</span>
+          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/8">
             <div
-              className="h-full rounded-full bg-navy-600"
+              className="h-full rounded-full bg-accent-ring"
               style={{ width: `${(d.total / max) * 100}%` }}
             />
           </div>
-          <span className="w-6 shrink-0 text-right font-medium text-navy-900">{d.total}</span>
+          <span className="w-6 shrink-0 text-right font-medium tabular-nums text-foreground">{d.total}</span>
         </div>
       ))}
     </div>

@@ -173,14 +173,14 @@ export default function TaskModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
       <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-6 shadow-2xl"
+        className="glass-strong max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-navy-900">{taskId ? "Editar tarefa" : "Nova tarefa"}</h2>
-          <button onClick={onClose} className="text-muted hover:text-navy-900">
+          <h2 className="text-lg font-semibold text-foreground">{taskId ? "Editar tarefa" : "Nova tarefa"}</h2>
+          <button onClick={onClose} className="text-muted hover:text-foreground">
             ✕
           </button>
         </div>
@@ -188,7 +188,7 @@ export default function TaskModal({
         {carregando ? (
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-9 animate-pulse rounded-lg bg-background" />
+              <div key={i} className="h-9 animate-pulse rounded-lg bg-white/5" />
             ))}
           </div>
         ) : (
@@ -271,11 +271,11 @@ export default function TaskModal({
                     className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition ${
                       statusAprovacao === s
                         ? s === "aprovado"
-                          ? "border-success bg-success/10 text-success"
+                          ? "border-success bg-success-bg text-success"
                           : s === "ajuste_solicitado"
                           ? "border-alert bg-alert-bg text-alert"
-                          : "border-navy-500 bg-navy-500/10 text-navy-700"
-                        : "border-border text-muted hover:border-navy-300"
+                          : "border-accent-ring bg-accent-ring/10 text-accent-ring"
+                        : "border-border text-muted hover:border-border-strong"
                     }`}
                   >
                     {STATUS_LABEL[s]}
@@ -289,13 +289,13 @@ export default function TaskModal({
             )}
 
             <div className="mt-2 border-t border-border pt-3">
-              <p className="mb-2 text-sm font-medium text-navy-800">Comentários</p>
+              <p className="mb-2 text-sm font-medium text-foreground">Comentários</p>
               <div className="mb-2 flex max-h-40 flex-col gap-2 overflow-y-auto">
                 {comentarios.length === 0 && <p className="text-xs text-muted">Nenhum comentário ainda.</p>}
                 {comentarios.map((c) => (
-                  <div key={c.id} className="rounded-lg bg-background p-2 text-sm">
-                    <p className="text-xs font-medium text-navy-700">{c.autor_nome}</p>
-                    <p className="text-navy-900">{c.texto}</p>
+                  <div key={c.id} className="rounded-lg bg-white/5 p-2 text-sm">
+                    <p className="text-xs font-medium text-accent-ring">{c.autor_nome}</p>
+                    <p className="text-foreground">{c.texto}</p>
                   </div>
                 ))}
               </div>
@@ -311,13 +311,13 @@ export default function TaskModal({
             {erro && <p className="text-sm text-alert">{erro}</p>}
 
             <div className="mt-2 flex justify-end gap-2">
-              <button type="button" onClick={onClose} className="rounded-lg px-4 py-2 text-sm text-muted hover:bg-background">
+              <button type="button" onClick={onClose} className="rounded-lg px-4 py-2 text-sm text-muted hover:bg-white/8">
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={salvando}
-                className="rounded-lg bg-navy-700 px-4 py-2 text-sm font-medium text-white hover:bg-navy-800 disabled:opacity-60"
+                className="rounded-lg border border-border-strong bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-60"
               >
                 {salvando ? "Salvando..." : "Salvar"}
               </button>
@@ -331,15 +331,23 @@ export default function TaskModal({
           width: 100%;
           border-radius: 0.5rem;
           border: 1px solid var(--border);
-          background: white;
+          background: rgba(255, 255, 255, 0.05);
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
           color: var(--foreground);
           outline: none;
+          color-scheme: dark;
+        }
+        .input::placeholder {
+          color: var(--muted);
         }
         .input:focus {
-          border-color: var(--navy-500);
-          box-shadow: 0 0 0 2px rgba(61, 99, 150, 0.15);
+          border-color: var(--accent-ring);
+          box-shadow: 0 0 0 2px rgba(47, 143, 174, 0.2);
+        }
+        .input option {
+          background: var(--surface);
+          color: var(--foreground);
         }
       `}</style>
     </div>
@@ -349,7 +357,7 @@ export default function TaskModal({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-medium text-navy-800">{label}</span>
+      <span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span>
       {children}
     </label>
   );

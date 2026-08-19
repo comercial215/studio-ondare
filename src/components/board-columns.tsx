@@ -14,6 +14,7 @@ interface BoardColumnsProps {
   teamMembers: TeamMember[];
   currentUserId: string;
   userRole: UserRole;
+  corCliente?: string;
 }
 
 function agruparPorColuna(colunas: Column[], tarefas: Task[]) {
@@ -36,8 +37,10 @@ export default function BoardColumns({
   teamMembers,
   currentUserId,
   userRole,
+  corCliente,
 }: BoardColumnsProps) {
   const supabase = createClient();
+  const corDestaque = corCliente || "var(--accent)";
   const [columns, setColumns] = useState(initialColumns.slice().sort((a, b) => a.ordem - b.ordem));
   const [tasksPorColuna, setTasksPorColuna] = useState(agruparPorColuna(initialColumns, initialTasks));
   const [modal, setModal] = useState<{ taskId: string | null; columnId: string } | null>(null);
@@ -158,11 +161,12 @@ export default function BoardColumns({
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between px-6 py-4">
-        <h1 className="text-xl font-semibold text-navy-900">Quadro</h1>
+        <h1 className="text-xl font-semibold text-foreground">Quadro</h1>
         {primeiraColuna && (
           <button
             onClick={() => setModal({ taskId: null, columnId: primeiraColuna.id })}
-            className="rounded-lg bg-navy-700 px-4 py-2 text-sm font-medium text-white hover:bg-navy-800"
+            style={{ backgroundColor: corDestaque }}
+            className="rounded-lg border border-border-strong px-4 py-2 text-sm font-medium text-white opacity-90 transition hover:opacity-100"
           >
             + Nova tarefa
           </button>
@@ -183,11 +187,11 @@ export default function BoardColumns({
                     <div
                       ref={providedCol.innerRef}
                       {...providedCol.draggableProps}
-                      className="flex w-72 shrink-0 flex-col rounded-xl bg-navy-900/[0.04] border border-border"
+                      className="flex w-72 shrink-0 flex-col rounded-xl border border-border bg-white/[0.03]"
                     >
                       <div
                         {...providedCol.dragHandleProps}
-                        className="flex items-center justify-between gap-2 rounded-t-xl bg-navy-800 px-3 py-2"
+                        className="flex items-center justify-between gap-2 rounded-t-xl bg-black/20 px-3 py-2 backdrop-blur-sm"
                       >
                         {editandoColuna === coluna.id ? (
                           <input
@@ -237,7 +241,8 @@ export default function BoardColumns({
                                       tabIndex={0}
                                       onClick={() => setModal({ taskId: tarefa.id, columnId: coluna.id })}
                                       onKeyDown={(e) => e.key === "Enter" && setModal({ taskId: tarefa.id, columnId: coluna.id })}
-                                      className={`cursor-pointer rounded-lg border border-border bg-white p-3 text-left shadow-sm transition hover:shadow-md ${
+                                      style={{ borderLeft: `3px solid ${corDestaque}` }}
+                                      className={`glass cursor-pointer rounded-lg p-3 text-left transition hover:border-border-strong ${
                                         coluna.is_final ? "opacity-60" : ""
                                       }`}
                                     >
@@ -260,7 +265,7 @@ export default function BoardColumns({
                                         <div className="min-w-0 flex-1">
                                           <p
                                             className={`text-sm font-medium ${
-                                              coluna.is_final ? "text-muted line-through" : "text-navy-900"
+                                              coluna.is_final ? "text-muted line-through" : "text-foreground"
                                             }`}
                                           >
                                             {tarefa.titulo}
@@ -302,7 +307,7 @@ export default function BoardColumns({
 
               <div className="w-64 shrink-0">
                 {novaColuna ? (
-                  <div className="rounded-xl border border-dashed border-navy-400 p-2">
+                  <div className="rounded-xl border border-dashed border-border-strong p-2">
                     <input
                       autoFocus
                       value={nomeNovaColuna}
@@ -310,13 +315,13 @@ export default function BoardColumns({
                       onKeyDown={(e) => e.key === "Enter" && criarColuna()}
                       onBlur={criarColuna}
                       placeholder="Nome da coluna"
-                      className="w-full rounded-md border border-border px-2 py-1.5 text-sm outline-none"
+                      className="w-full rounded-md border border-border bg-white/5 px-2 py-1.5 text-sm text-foreground outline-none placeholder:text-muted"
                     />
                   </div>
                 ) : (
                   <button
                     onClick={() => setNovaColuna(true)}
-                    className="w-full rounded-xl border border-dashed border-navy-300 py-3 text-sm text-navy-600 hover:bg-navy-50"
+                    className="w-full rounded-xl border border-dashed border-border-strong py-3 text-sm text-foreground/70 hover:bg-white/8"
                   >
                     + Nova coluna
                   </button>

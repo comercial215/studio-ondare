@@ -11,6 +11,24 @@ interface NavProps {
   workspaces: { id: string; nome: string; slug: string; cor: string }[];
 }
 
+function Logo() {
+  const [erro, setErro] = useState(false);
+
+  if (erro) {
+    return <span className="text-lg font-semibold tracking-tight text-foreground">Studio Ondare</span>;
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- logo é um arquivo estático em public/, trocado direto
+    <img
+      src="/logo.png"
+      alt="Studio Ondare"
+      className="h-7 w-auto"
+      onError={() => setErro(true)}
+    />
+  );
+}
+
 export default function Nav({ profile, workspaces }: NavProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -28,16 +46,16 @@ export default function Nav({ profile, workspaces }: NavProps) {
   const linkClasses = (href: string) =>
     `rounded-md px-3 py-1.5 text-sm font-medium transition ${
       pathname === href || pathname.startsWith(href + "/")
-        ? "bg-navy-800 text-white"
-        : "text-navy-100/80 hover:bg-navy-800/60 hover:text-white"
+        ? "bg-accent text-white"
+        : "text-foreground/80 hover:bg-white/8 hover:text-foreground"
     }`;
 
   return (
-    <header className="bg-navy-900 px-4 py-3 shadow-md sm:px-6">
+    <header className="glass sticky top-0 z-30 rounded-none border-x-0 border-t-0 px-4 py-3 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-lg font-semibold tracking-tight text-white">
-            Studio Ondare
+          <Link href="/" className="flex items-center">
+            <Logo />
           </Link>
 
           {isAdminOuTime && (
@@ -62,7 +80,7 @@ export default function Nav({ profile, workspaces }: NavProps) {
           <div className="relative">
             <button
               onClick={() => setAberto((v) => !v)}
-              className="flex items-center gap-2 rounded-md bg-navy-800 px-3 py-1.5 text-sm text-white hover:bg-navy-700"
+              className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-white/8"
             >
               Clientes
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -71,7 +89,7 @@ export default function Nav({ profile, workspaces }: NavProps) {
             </button>
             {aberto && (
               <div
-                className="absolute right-0 z-20 mt-2 max-h-80 w-56 overflow-auto rounded-lg border border-border bg-white py-1 shadow-xl"
+                className="glass-strong absolute right-0 z-20 mt-2 max-h-80 w-56 overflow-auto rounded-lg py-1"
                 onMouseLeave={() => setAberto(false)}
               >
                 {workspaces.length === 0 && (
@@ -82,9 +100,9 @@ export default function Nav({ profile, workspaces }: NavProps) {
                     key={w.id}
                     href={`/w/${w.slug}/board`}
                     onClick={() => setAberto(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-navy-900 hover:bg-background"
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-white/8"
                   >
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: w.cor }} />
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: w.cor }} />
                     {w.nome}
                   </Link>
                 ))}
@@ -93,13 +111,13 @@ export default function Nav({ profile, workspaces }: NavProps) {
           </div>
 
           <div className="hidden text-right sm:block">
-            <p className="text-sm font-medium text-white">{profile.nome ?? profile.email}</p>
-            <p className="text-xs text-navy-100/60">{profile.role}</p>
+            <p className="text-sm font-medium text-foreground">{profile.nome ?? profile.email}</p>
+            <p className="text-xs text-muted">{profile.role}</p>
           </div>
 
           <button
             onClick={sair}
-            className="rounded-md px-3 py-1.5 text-sm text-navy-100/80 hover:bg-navy-800 hover:text-white"
+            className="rounded-md px-3 py-1.5 text-sm text-foreground/80 hover:bg-white/8 hover:text-foreground"
           >
             Sair
           </button>
