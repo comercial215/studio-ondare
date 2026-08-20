@@ -28,7 +28,11 @@ export default async function WorkspaceCalendarPage({ params }: { params: Promis
   const { data: columns } = board
     ? await supabase.from("columns").select("*").eq("board_id", board.id)
     : { data: [] };
-  const { data: teamMembers } = await supabase.from("team_members").select("*").order("nome");
+  const { data: teamMembers } = await supabase
+    .from("team_members")
+    .select("*")
+    .or(`workspace_id.is.null,workspace_id.eq.${workspace.id}`)
+    .order("nome");
 
   const tasks: TarefaCalendario[] = (tasksRaw ?? []).map((t) => ({
     ...t,

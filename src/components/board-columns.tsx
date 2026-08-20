@@ -5,10 +5,12 @@ import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-p
 import { createClient } from "@/lib/supabase/client";
 import TaskModal from "./task-modal";
 import Avatar from "./avatar";
+import Equipe from "./equipe";
 import type { Column, Task, TeamMember, UserRole } from "@/lib/types";
 
 interface BoardColumnsProps {
   boardId: string;
+  workspaceId: string;
   initialColumns: Column[];
   initialTasks: Task[];
   teamMembers: TeamMember[];
@@ -32,6 +34,7 @@ function agruparPorColuna(colunas: Column[], tarefas: Task[]) {
 
 export default function BoardColumns({
   boardId,
+  workspaceId,
   initialColumns,
   initialTasks,
   teamMembers,
@@ -47,6 +50,7 @@ export default function BoardColumns({
   const [novaColuna, setNovaColuna] = useState(false);
   const [nomeNovaColuna, setNomeNovaColuna] = useState("");
   const [editandoColuna, setEditandoColuna] = useState<string | null>(null);
+  const [equipeAberta, setEquipeAberta] = useState(false);
 
   const podeAprovar = userRole === "cliente";
 
@@ -162,15 +166,25 @@ export default function BoardColumns({
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between px-6 py-4">
         <h1 className="text-xl font-semibold text-foreground">Quadro</h1>
-        {primeiraColuna && (
-          <button
-            onClick={() => setModal({ taskId: null, columnId: primeiraColuna.id })}
-            style={{ backgroundColor: corDestaque }}
-            className="rounded-lg border border-border-strong px-4 py-2 text-sm font-medium text-white opacity-90 transition hover:opacity-100"
-          >
-            + Nova tarefa
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {userRole !== "cliente" && (
+            <button
+              onClick={() => setEquipeAberta(true)}
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-white/8"
+            >
+              Equipe do cliente
+            </button>
+          )}
+          {primeiraColuna && (
+            <button
+              onClick={() => setModal({ taskId: null, columnId: primeiraColuna.id })}
+              style={{ backgroundColor: corDestaque }}
+              className="rounded-lg border border-border-strong px-4 py-2 text-sm font-medium text-white opacity-90 transition hover:opacity-100"
+            >
+              + Nova tarefa
+            </button>
+          )}
+        </div>
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
@@ -352,6 +366,23 @@ export default function BoardColumns({
             recarregar();
           }}
         />
+      )}
+
+      {equipeAberta && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={recarregar}>
+          <div className="glass-strong max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Equipe do cliente</h2>
+              <button onClick={recarregar} className="text-muted hover:text-foreground">
+                ✕
+              </button>
+            </div>
+            <Equipe
+              workspaceId={workspaceId}
+              legenda='Pessoas do lado do cliente que também podem aparecer no seletor de "Responsável" das tarefas desse quadro.'
+            />
+          </div>
+        </div>
       )}
     </div>
   );

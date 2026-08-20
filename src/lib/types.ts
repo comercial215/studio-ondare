@@ -45,6 +45,7 @@ export interface Column {
 export interface TeamMember {
   id: string;
   profile_id: string | null;
+  workspace_id: string | null;
   nome: string;
   email: string;
   cargo: string | null;

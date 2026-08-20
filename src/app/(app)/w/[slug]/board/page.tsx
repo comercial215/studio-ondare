@@ -34,7 +34,11 @@ export default async function BoardPage({ params }: { params: Promise<{ slug: st
 
   const { data: columns } = await supabase.from("columns").select("*").eq("board_id", board.id).order("ordem");
   const { data: tasks } = await supabase.from("tasks").select("*").eq("board_id", board.id);
-  const { data: teamMembers } = await supabase.from("team_members").select("*").order("nome");
+  const { data: teamMembers } = await supabase
+    .from("team_members")
+    .select("*")
+    .or(`workspace_id.is.null,workspace_id.eq.${workspace.id}`)
+    .order("nome");
 
   return (
     <div>
@@ -47,6 +51,7 @@ export default async function BoardPage({ params }: { params: Promise<{ slug: st
       </div>
       <BoardColumns
         boardId={board.id}
+        workspaceId={workspace.id}
         initialColumns={(columns ?? []) as Column[]}
         initialTasks={(tasks ?? []) as Task[]}
         teamMembers={(teamMembers ?? []) as TeamMember[]}
