@@ -32,9 +32,16 @@ function mesParaData(mes: string) {
 
 const CORES = ["#1e3a5f", "#2b4d78", "#b3791a", "#1f7a52", "#7a3b8f", "#c0442c", "#3d6396", "#5b6b85"];
 
+interface ClienteVinculado {
+  id: string;
+  email: string;
+  workspace_id: string;
+}
+
 export default function WorkspacesPage() {
   const supabase = createClient();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [vinculados, setVinculados] = useState<ClienteVinculado[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [nome, setNome] = useState("");
   const [valor, setValor] = useState("");
@@ -43,9 +50,41 @@ export default function WorkspacesPage() {
   const [erro, setErro] = useState<string | null>(null);
 
   async function carregar() {
-    const { data } = await supabase.from("workspaces").select("*").order("nome");
-    setWorkspaces((data ?? []) as Workspace[]);
+    const [wsResp, vincResp] = await Promise.all([
+      supabase.from("workspaces").select("*").order("nome"),
+      supabase.from("profiles").select("id, email, workspace_id").eq("role", "cliente").not("workspace_id", "is", null),
+    ]);
+    setWorkspaces((wsResp.data ?? []) as Workspace[]);
+    setVinculados((vincResp.data ?? []) as ClienteVinculado[]);
     setCarregando(false);
+  }
+
+  async function vincularCliente(ws: Workspace, email: string): Promise<string | null> {
+    const { data: perfil, error: erroBusca } = await supabase
+      .from("profiles")
+      .select("id, email")
+      .ilike("email", email.trim())
+      .maybeSingle();
+
+    if (erroBusca || !perfil) {
+      return "Não achei nenhum login com esse e-mail. Crie primeiro em Authentication → Users, no painel do Supabase.";
+    }
+
+    const { error } = await supabase.from("profiles").update({ role: "cliente", workspace_id: ws.id }).eq("id", perfil.id);
+    if (error) return error.message;
+
+    setVinculados((prev) => [...prev.filter((v) => v.id !== perfil.id), { id: perfil.id, email: perfil.email, workspace_id: ws.id }]);
+    return null;
+  }
+
+  async function desvincularCliente(profileId: string) {
+    if (!confirm("Remover o acesso desse login ao workspace? A pessoa não vai mais conseguir entrar no quadro.")) return;
+    const { error } = await supabase.from("profiles").update({ workspace_id: null }).eq("id", profileId);
+    if (error) {
+      alert(`Não foi possível remover: ${error.message}`);
+      return;
+    }
+    setVinculados((prev) => prev.filter((v) => v.id !== profileId));
   }
 
   useEffect(() => {
@@ -167,6 +206,7 @@ export default function WorkspacesPage() {
                 <th className="px-4 py-2 font-medium">Valor mensal</th>
                 <th className="px-4 py-2 font-medium">Início</th>
                 <th className="px-4 py-2 font-medium">Contrato</th>
+                <th className="px-4 py-2 font-medium">Acesso do cliente</th>
                 <th className="px-4 py-2 font-medium" />
               </tr>
             </thead>
@@ -176,13 +216,16 @@ export default function WorkspacesPage() {
                   key={w.id}
                   ws={w}
                   enviandoLogo={enviandoLogo === w.id}
+                  vinculados={vinculados.filter((v) => v.workspace_id === w.id)}
                   onAtualizar={atualizar}
                   onTrocarLogo={trocarLogo}
+                  onVincular={vincularCliente}
+                  onDesvincular={desvincularCliente}
                 />
               ))}
               {workspaces.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-muted">
+                  <td colSpan={6} className="px-4 py-6 text-center text-muted">
                     Nenhum cliente cadastrado ainda.
                   </td>
                 </tr>
@@ -217,13 +260,19 @@ export default function WorkspacesPage() {
 function LinhaWorkspace({
   ws,
   enviandoLogo,
+  vinculados,
   onAtualizar,
   onTrocarLogo,
+  onVincular,
+  onDesvincular,
 }: {
   ws: Workspace;
   enviandoLogo: boolean;
+  vinculados: ClienteVinculado[];
   onAtualizar: (ws: Workspace, campo: keyof Workspace, valor: string | number | null) => void;
   onTrocarLogo: (ws: Workspace, arquivo: File) => void;
+  onVincular: (ws: Workspace, email: string) => Promise<string | null>;
+  onDesvincular: (profileId: string) => void;
 }) {
   const inputLogo = useRef<HTMLInputElement>(null);
   const inputCor = useRef<HTMLInputElement>(null);
@@ -306,12 +355,86 @@ function LinhaWorkspace({
           )}
         </div>
       </td>
+      <td className="px-4 py-2">
+        <AcessoCliente ws={ws} vinculados={vinculados} onVincular={onVincular} onDesvincular={onDesvincular} />
+      </td>
       <td className="px-4 py-2 text-right">
         <Link href={`/w/${ws.slug}/board`} className="text-accent-ring hover:underline">
           Ver quadro →
         </Link>
       </td>
     </tr>
+  );
+}
+
+function AcessoCliente({
+  ws,
+  vinculados,
+  onVincular,
+  onDesvincular,
+}: {
+  ws: Workspace;
+  vinculados: ClienteVinculado[];
+  onVincular: (ws: Workspace, email: string) => Promise<string | null>;
+  onDesvincular: (profileId: string) => void;
+}) {
+  const [abrindo, setAbrindo] = useState(false);
+  const [email, setEmail] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+
+  async function vincular(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setEnviando(true);
+    setErro(null);
+    const msgErro = await onVincular(ws, email.trim());
+    setEnviando(false);
+    if (msgErro) {
+      setErro(msgErro);
+      return;
+    }
+    setEmail("");
+    setAbrindo(false);
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      {vinculados.map((v) => (
+        <div key={v.id} className="flex items-center gap-1.5 text-xs">
+          <span className="truncate text-foreground/80" title={v.email}>
+            {v.email}
+          </span>
+          <button onClick={() => onDesvincular(v.id)} className="text-muted hover:text-alert" title="Remover acesso">
+            ✕
+          </button>
+        </div>
+      ))}
+
+      {abrindo ? (
+        <form onSubmit={vincular} className="flex items-center gap-1">
+          <input
+            type="email"
+            autoFocus
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="e-mail do cliente"
+            className="w-36 rounded border border-border bg-white/5 px-1.5 py-0.5 text-xs text-foreground outline-none placeholder:text-muted focus:border-accent-ring"
+          />
+          <button type="submit" disabled={enviando} className="rounded bg-accent px-2 py-0.5 text-xs text-white hover:bg-accent-hover disabled:opacity-60">
+            {enviando ? "..." : "Ok"}
+          </button>
+          <button type="button" onClick={() => setAbrindo(false)} className="text-xs text-muted hover:text-foreground">
+            cancelar
+          </button>
+        </form>
+      ) : (
+        <button onClick={() => setAbrindo(true)} className="w-fit text-xs text-accent-ring hover:underline">
+          + Vincular acesso
+        </button>
+      )}
+      {erro && <p className="max-w-[180px] text-[11px] text-alert">{erro}</p>}
+    </div>
   );
 }
 
