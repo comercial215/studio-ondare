@@ -10,24 +10,23 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, email, nome, role, workspace_id, workspaces:workspace_id(id, nome, slug, cor)")
-    .eq("id", user.id)
-    .single();
+  const { data: profile } = await supabase.from("profiles").select("id, email, nome, role").eq("id", user.id).single();
 
   if (!profile) redirect("/login");
 
   let workspaces: { id: string; nome: string; slug: string; cor: string }[] = [];
 
   if (profile.role === "admin" || profile.role === "time") {
-    const { data } = await supabase
-      .from("workspaces")
-      .select("id, nome, slug, cor")
-      .order("nome");
+    const { data } = await supabase.from("workspaces").select("id, nome, slug, cor").order("nome");
     workspaces = data ?? [];
-  } else if (profile.workspaces) {
-    workspaces = [profile.workspaces as unknown as { id: string; nome: string; slug: string; cor: string }];
+  } else {
+    const { data } = await supabase
+      .from("workspace_acessos")
+      .select("workspaces:workspace_id(id, nome, slug, cor)")
+      .order("criado_em");
+    workspaces = (data ?? [])
+      .map((a) => a.workspaces as unknown as { id: string; nome: string; slug: string; cor: string } | null)
+      .filter((w): w is { id: string; nome: string; slug: string; cor: string } => w !== null);
   }
 
   return (

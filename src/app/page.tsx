@@ -9,14 +9,16 @@ export default async function HomeRedirect() {
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, workspace_id, workspaces:workspace_id(slug)")
-    .eq("id", user.id)
-    .single();
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
 
   if (profile?.role === "cliente") {
-    const workspace = profile.workspaces as unknown as { slug: string } | null;
+    const { data: acessos } = await supabase
+      .from("workspace_acessos")
+      .select("workspaces:workspace_id(slug)")
+      .order("criado_em")
+      .limit(1);
+
+    const workspace = acessos?.[0]?.workspaces as unknown as { slug: string } | null;
     if (workspace?.slug) redirect(`/w/${workspace.slug}/board`);
     redirect("/login");
   }

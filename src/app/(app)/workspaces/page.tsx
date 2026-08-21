@@ -33,7 +33,8 @@ function mesParaData(mes: string) {
 const CORES = ["#1e3a5f", "#2b4d78", "#b3791a", "#1f7a52", "#7a3b8f", "#c0442c", "#3d6396", "#5b6b85"];
 
 interface ClienteVinculado {
-  id: string;
+  id: string; // id da linha em workspace_acessos
+  profileId: string;
   email: string;
   workspace_id: string;
 }
@@ -52,17 +53,22 @@ export default function WorkspacesPage() {
   async function carregar() {
     const [wsResp, vincResp] = await Promise.all([
       supabase.from("workspaces").select("*").order("nome"),
-      supabase.from("profiles").select("id, email, workspace_id").eq("role", "cliente").not("workspace_id", "is", null),
+      supabase.from("workspace_acessos").select("id, workspace_id, profiles:profile_id(id, email)"),
     ]);
     setWorkspaces((wsResp.data ?? []) as Workspace[]);
-    setVinculados((vincResp.data ?? []) as ClienteVinculado[]);
+    setVinculados(
+      (vincResp.data ?? []).map((v) => {
+        const perfil = v.profiles as unknown as { id: string; email: string } | null;
+        return { id: v.id, profileId: perfil?.id ?? "", email: perfil?.email ?? "—", workspace_id: v.workspace_id };
+      })
+    );
     setCarregando(false);
   }
 
   async function vincularCliente(ws: Workspace, email: string): Promise<string | null> {
     const { data: perfil, error: erroBusca } = await supabase
       .from("profiles")
-      .select("id, email")
+      .select("id, email, role")
       .ilike("email", email.trim())
       .maybeSingle();
 
@@ -70,29 +76,39 @@ export default function WorkspacesPage() {
       return "Não achei nenhum login com esse e-mail. Crie primeiro em Authentication → Users, no painel do Supabase.";
     }
 
-    const { data: atualizado, error } = await supabase
-      .from("profiles")
-      .update({ role: "cliente", workspace_id: ws.id })
-      .eq("id", perfil.id)
-      .select("id");
-
-    if (error) return error.message;
-    if (!atualizado || atualizado.length === 0) {
-      return "O banco recusou salvar isso (provavelmente falta rodar a migration_04_acesso_cliente.sql no SQL Editor do Supabase).";
+    if (perfil.role !== "admin" && perfil.role !== "time") {
+      await supabase.from("profiles").update({ role: "cliente" }).eq("id", perfil.id);
     }
 
-    setVinculados((prev) => [...prev.filter((v) => v.id !== perfil.id), { id: perfil.id, email: perfil.email, workspace_id: ws.id }]);
+    const { data: inserido, error } = await supabase
+      .from("workspace_acessos")
+      .insert({ profile_id: perfil.id, workspace_id: ws.id })
+      .select("id")
+      .single();
+
+    if (error) {
+      if (error.code === "23505") return "Esse e-mail já tem acesso a esse cliente.";
+      if (error.code === "42P01") {
+        return "O banco recusou salvar isso (falta rodar a migration_06_multi_acesso.sql no SQL Editor do Supabase).";
+      }
+      return error.message;
+    }
+    if (!inserido) {
+      return "O banco recusou salvar isso (provavelmente falta rodar alguma migração pendente no SQL Editor do Supabase).";
+    }
+
+    setVinculados((prev) => [...prev, { id: inserido.id, profileId: perfil.id, email: perfil.email, workspace_id: ws.id }]);
     return null;
   }
 
-  async function desvincularCliente(profileId: string) {
-    if (!confirm("Remover o acesso desse login ao workspace? A pessoa não vai mais conseguir entrar no quadro.")) return;
-    const { error } = await supabase.from("profiles").update({ workspace_id: null }).eq("id", profileId);
+  async function desvincularCliente(vinculoId: string) {
+    if (!confirm("Remover o acesso desse login a esse cliente? A pessoa não vai mais conseguir entrar nesse quadro.")) return;
+    const { error } = await supabase.from("workspace_acessos").delete().eq("id", vinculoId);
     if (error) {
       alert(`Não foi possível remover: ${error.message}`);
       return;
     }
-    setVinculados((prev) => prev.filter((v) => v.id !== profileId));
+    setVinculados((prev) => prev.filter((v) => v.id !== vinculoId));
   }
 
   useEffect(() => {
