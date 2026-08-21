@@ -204,9 +204,8 @@ export default function WorkspacesPage() {
               <tr>
                 <th className="px-4 py-2 font-medium">Cliente</th>
                 <th className="px-4 py-2 font-medium">Valor mensal</th>
-                <th className="px-4 py-2 font-medium">Início</th>
                 <th className="px-4 py-2 font-medium">Contrato</th>
-                <th className="px-4 py-2 font-medium">Acesso do cliente</th>
+                <th className="px-4 py-2 font-medium" />
                 <th className="px-4 py-2 font-medium" />
               </tr>
             </thead>
@@ -225,7 +224,7 @@ export default function WorkspacesPage() {
               ))}
               {workspaces.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-muted">
+                  <td colSpan={5} className="px-4 py-6 text-center text-muted">
                     Nenhum cliente cadastrado ainda.
                   </td>
                 </tr>
@@ -281,14 +280,27 @@ function LinhaWorkspace({
     <tr className="border-t border-border">
       <td className="px-4 py-2">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => inputLogo.current?.click()} className="relative shrink-0" title="Trocar logo">
-            <Avatar nome={ws.nome} url={ws.logo_url} tamanho={28} />
+          <div className="relative shrink-0">
+            <Link href={`/w/${ws.slug}/board`} title={`Abrir o quadro de ${ws.nome}`}>
+              <Avatar nome={ws.nome} url={ws.logo_url} tamanho={30} />
+            </Link>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                inputLogo.current?.click();
+              }}
+              className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-border bg-surface text-[8px] text-foreground/70 hover:text-foreground"
+              title="Trocar logo"
+            >
+              ✎
+            </button>
             {enviandoLogo && (
               <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-[9px] text-white">
                 ...
               </span>
             )}
-          </button>
+          </div>
           <input
             ref={inputLogo}
             type="file"
@@ -324,26 +336,27 @@ function LinhaWorkspace({
         />
       </td>
       <td className="px-4 py-2">
-        <input
-          type="month"
-          value={dataParaMes(ws.contrato_inicio)}
-          onChange={(e) => onAtualizar(ws, "contrato_inicio", mesParaData(e.target.value))}
-          className="rounded px-1.5 py-1 text-foreground outline-none [color-scheme:dark] hover:bg-white/8 focus:bg-white/8"
-        />
-      </td>
-      <td className="px-4 py-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
           <select
             value={ws.status_contrato}
             onChange={(e) => onAtualizar(ws, "status_contrato", e.target.value)}
-            className="rounded bg-transparent px-1.5 py-1 text-foreground outline-none hover:bg-white/8"
+            className="rounded bg-transparent py-1 text-foreground outline-none hover:bg-white/8"
           >
             <option value="ativo">Ativo</option>
             <option value="pausado">Pausado</option>
             <option value="encerrado">Encerrado</option>
           </select>
+          <label className="flex items-center gap-1 text-muted">
+            desde
+            <input
+              type="month"
+              value={dataParaMes(ws.contrato_inicio)}
+              onChange={(e) => onAtualizar(ws, "contrato_inicio", mesParaData(e.target.value))}
+              className="rounded px-1 py-0.5 text-foreground outline-none [color-scheme:dark] hover:bg-white/8 focus:bg-white/8"
+            />
+          </label>
           {ws.status_contrato !== "ativo" && (
-            <label className="flex items-center gap-1 text-xs text-muted">
+            <label className="flex items-center gap-1 text-muted">
               até
               <input
                 type="month"
@@ -359,12 +372,7 @@ function LinhaWorkspace({
         <AcessoCliente ws={ws} vinculados={vinculados} onVincular={onVincular} onDesvincular={onDesvincular} />
       </td>
       <td className="px-4 py-2 text-right">
-        <div className="flex items-center justify-end gap-3">
-          <CopiarLink slug={ws.slug} />
-          <Link href={`/w/${ws.slug}/board`} className="text-accent-ring hover:underline">
-            Ver quadro →
-          </Link>
-        </div>
+        <CopiarLink slug={ws.slug} />
       </td>
     </tr>
   );
@@ -403,7 +411,7 @@ function AcessoCliente({
   onVincular: (ws: Workspace, email: string) => Promise<string | null>;
   onDesvincular: (profileId: string) => void;
 }) {
-  const [abrindo, setAbrindo] = useState(false);
+  const [aberto, setAberto] = useState(false);
   const [email, setEmail] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -420,45 +428,50 @@ function AcessoCliente({
       return;
     }
     setEmail("");
-    setAbrindo(false);
   }
 
   return (
-    <div className="flex flex-col gap-1">
-      {vinculados.map((v) => (
-        <div key={v.id} className="flex items-center gap-1.5 text-xs">
-          <span className="truncate text-foreground/80" title={v.email}>
-            {v.email}
-          </span>
-          <button onClick={() => onDesvincular(v.id)} className="text-muted hover:text-alert" title="Remover acesso">
-            ✕
-          </button>
-        </div>
-      ))}
+    <div className="relative inline-block">
+      <button
+        type="button"
+        onClick={() => setAberto((v) => !v)}
+        className="rounded-lg border border-border px-2.5 py-1 text-xs text-foreground/80 hover:bg-white/8"
+        title="Acesso do cliente ao quadro"
+      >
+        Acesso{vinculados.length > 0 ? ` (${vinculados.length})` : ""}
+      </button>
 
-      {abrindo ? (
-        <form onSubmit={vincular} className="flex items-center gap-1">
-          <input
-            type="email"
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="e-mail do cliente"
-            className="w-36 rounded border border-border bg-white/5 px-1.5 py-0.5 text-xs text-foreground outline-none placeholder:text-muted focus:border-accent-ring"
-          />
-          <button type="submit" disabled={enviando} className="rounded bg-accent px-2 py-0.5 text-xs text-white hover:bg-accent-hover disabled:opacity-60">
-            {enviando ? "..." : "Ok"}
-          </button>
-          <button type="button" onClick={() => setAbrindo(false)} className="text-xs text-muted hover:text-foreground">
-            cancelar
-          </button>
-        </form>
-      ) : (
-        <button onClick={() => setAbrindo(true)} className="w-fit text-xs text-accent-ring hover:underline">
-          + Vincular acesso
-        </button>
+      {aberto && (
+        <div className="glass-strong absolute right-0 z-20 mt-2 w-64 rounded-xl p-3" onMouseLeave={() => setAberto(false)}>
+          <p className="mb-2 text-xs font-medium text-foreground/80">Quem acessa esse quadro</p>
+          {vinculados.length === 0 && <p className="mb-2 text-xs text-muted">Ninguém vinculado ainda.</p>}
+          <div className="mb-2 flex flex-col gap-1">
+            {vinculados.map((v) => (
+              <div key={v.id} className="flex items-center justify-between gap-1.5 text-xs">
+                <span className="truncate text-foreground/80" title={v.email}>
+                  {v.email}
+                </span>
+                <button onClick={() => onDesvincular(v.id)} className="shrink-0 text-muted hover:text-alert" title="Remover acesso">
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+          <form onSubmit={vincular} className="flex items-center gap-1">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="e-mail já cadastrado"
+              className="w-full rounded border border-border bg-white/5 px-1.5 py-1 text-xs text-foreground outline-none placeholder:text-muted focus:border-accent-ring"
+            />
+            <button type="submit" disabled={enviando} className="shrink-0 rounded bg-accent px-2 py-1 text-xs text-white hover:bg-accent-hover disabled:opacity-60">
+              {enviando ? "..." : "+"}
+            </button>
+          </form>
+          {erro && <p className="mt-1 text-[11px] text-alert">{erro}</p>}
+        </div>
       )}
-      {erro && <p className="max-w-[180px] text-[11px] text-alert">{erro}</p>}
     </div>
   );
 }
