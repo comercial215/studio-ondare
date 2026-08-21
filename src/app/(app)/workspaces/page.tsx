@@ -70,8 +70,16 @@ export default function WorkspacesPage() {
       return "Não achei nenhum login com esse e-mail. Crie primeiro em Authentication → Users, no painel do Supabase.";
     }
 
-    const { error } = await supabase.from("profiles").update({ role: "cliente", workspace_id: ws.id }).eq("id", perfil.id);
+    const { data: atualizado, error } = await supabase
+      .from("profiles")
+      .update({ role: "cliente", workspace_id: ws.id })
+      .eq("id", perfil.id)
+      .select("id");
+
     if (error) return error.message;
+    if (!atualizado || atualizado.length === 0) {
+      return "O banco recusou salvar isso (provavelmente falta rodar a migration_04_acesso_cliente.sql no SQL Editor do Supabase).";
+    }
 
     setVinculados((prev) => [...prev.filter((v) => v.id !== perfil.id), { id: perfil.id, email: perfil.email, workspace_id: ws.id }]);
     return null;
