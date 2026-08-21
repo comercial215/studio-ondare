@@ -114,8 +114,23 @@ body {
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
 }
 
+/* Painel lateral de tarefa — entra deslizando da direita, como no Asana */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.drawer-panel {
+  animation: slide-in-right 0.22s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }

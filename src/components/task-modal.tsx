@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type {
   CanalPlataforma,
@@ -60,6 +60,17 @@ export default function TaskModal({
 
   const [comentarios, setComentarios] = useState<(TaskComment & { autor_nome: string })[]>([]);
   const [novoComentario, setNovoComentario] = useState("");
+  const descricaoRef = useRef<HTMLTextAreaElement>(null);
+
+  function autoCrescer(el: HTMLTextAreaElement | null) {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }
+
+  useEffect(() => {
+    autoCrescer(descricaoRef.current);
+  }, [descricao, carregando]);
 
   useEffect(() => {
     if (!taskId) return;
@@ -173,9 +184,9 @@ export default function TaskModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/60" onClick={onClose}>
       <div
-        className="glass-strong max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl p-6"
+        className="drawer-panel glass-strong fixed right-0 top-0 h-full w-full max-w-xl overflow-y-auto rounded-l-2xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
@@ -251,15 +262,6 @@ export default function TaskModal({
               />
             </Field>
 
-            <Field label="Descrição / observações">
-              <textarea
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-                rows={3}
-                className="input resize-none"
-              />
-            </Field>
-
             <Field label="Status de aprovação">
               <div className="flex gap-2">
                 {(Object.keys(STATUS_LABEL) as StatusAprovacao[]).map((s) => (
@@ -287,6 +289,19 @@ export default function TaskModal({
             {statusAprovacao === "ajuste_solicitado" && statusAprovacao !== statusAprovacaoOriginal && (
               <p className="text-xs text-muted">Pedir ajuste move o card para &quot;Ajustes Solicitados&quot; e exige um comentário abaixo.</p>
             )}
+
+            <Field label="Descrição / observações">
+              <textarea
+                ref={descricaoRef}
+                value={descricao}
+                onChange={(e) => {
+                  setDescricao(e.target.value);
+                  autoCrescer(e.target);
+                }}
+                rows={3}
+                className="input resize-none overflow-hidden"
+              />
+            </Field>
 
             <div className="mt-2 border-t border-border pt-3">
               <p className="mb-2 text-sm font-medium text-foreground">Comentários</p>
