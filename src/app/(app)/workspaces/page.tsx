@@ -359,11 +359,36 @@ function LinhaWorkspace({
         <AcessoCliente ws={ws} vinculados={vinculados} onVincular={onVincular} onDesvincular={onDesvincular} />
       </td>
       <td className="px-4 py-2 text-right">
-        <Link href={`/w/${ws.slug}/board`} className="text-accent-ring hover:underline">
-          Ver quadro →
-        </Link>
+        <div className="flex items-center justify-end gap-3">
+          <CopiarLink slug={ws.slug} />
+          <Link href={`/w/${ws.slug}/board`} className="text-accent-ring hover:underline">
+            Ver quadro →
+          </Link>
+        </div>
       </td>
     </tr>
+  );
+}
+
+function CopiarLink({ slug }: { slug: string }) {
+  const [copiado, setCopiado] = useState(false);
+
+  async function copiar() {
+    const link = `${window.location.origin}/w/${slug}/board`;
+    await navigator.clipboard.writeText(link);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copiar}
+      className="rounded-lg border border-border px-2.5 py-1 text-xs text-foreground/80 hover:bg-white/8"
+      title="Copiar link do quadro desse cliente"
+    >
+      {copiado ? "Copiado!" : "Copiar link"}
+    </button>
   );
 }
 
