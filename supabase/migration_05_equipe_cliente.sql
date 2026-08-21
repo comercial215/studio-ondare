@@ -12,6 +12,7 @@ alter table public.team_members add column if not exists workspace_id uuid refer
 -- cliente pra outro. Restringe: time interno é visível pra todo mundo, contato
 -- de cliente só é visível pro admin/time ou pelo próprio cliente daquele workspace.
 drop policy if exists "team_members leitura autenticada" on public.team_members;
+drop policy if exists "team_members leitura conforme papel" on public.team_members;
 create policy "team_members leitura conforme papel" on public.team_members
   for select using (
     public.current_role() in ('admin', 'time')
