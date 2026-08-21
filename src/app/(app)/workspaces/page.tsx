@@ -191,7 +191,7 @@ export default function WorkspacesPage() {
       </form>
       {erro && <p className="mb-4 text-sm text-alert">{erro}</p>}
 
-      <div className="glass overflow-hidden rounded-xl">
+      <div className="glass overflow-x-auto rounded-xl">
         {carregando ? (
           <div className="space-y-2 p-4">
             {[...Array(3)].map((_, i) => (
@@ -199,7 +199,14 @@ export default function WorkspacesPage() {
             ))}
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full table-fixed text-sm" style={{ minWidth: 640 }}>
+            <colgroup>
+              <col className="w-[34%]" />
+              <col className="w-[16%]" />
+              <col className="w-[28%]" />
+              <col className="w-[13%]" />
+              <col className="w-[9%]" />
+            </colgroup>
             <thead className="bg-black/15 text-left text-xs text-muted">
               <tr>
                 <th className="px-4 py-2 font-medium">Cliente</th>
@@ -278,8 +285,8 @@ function LinhaWorkspace({
 
   return (
     <tr className="border-t border-border">
-      <td className="px-4 py-2">
-        <div className="flex items-center gap-2">
+      <td className="min-w-0 px-4 py-2">
+        <div className="flex min-w-0 items-center gap-2">
           <div className="relative shrink-0">
             <Link href={`/w/${ws.slug}/board`} title={`Abrir o quadro de ${ws.nome}`}>
               <Avatar nome={ws.nome} url={ws.logo_url} tamanho={30} />
@@ -335,34 +342,34 @@ function LinhaWorkspace({
           placeholder="—"
         />
       </td>
-      <td className="px-4 py-2">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+      <td className="min-w-0 px-4 py-2">
+        <div className="flex min-w-0 flex-col gap-1 text-xs">
           <select
             value={ws.status_contrato}
             onChange={(e) => onAtualizar(ws, "status_contrato", e.target.value)}
-            className="rounded bg-transparent py-1 text-foreground outline-none hover:bg-white/8"
+            className="w-fit rounded bg-transparent py-0.5 text-foreground outline-none hover:bg-white/8"
           >
             <option value="ativo">Ativo</option>
             <option value="pausado">Pausado</option>
             <option value="encerrado">Encerrado</option>
           </select>
-          <label className="flex items-center gap-1 text-muted">
+          <label className="flex min-w-0 items-center gap-1 text-muted">
             desde
             <input
               type="month"
               value={dataParaMes(ws.contrato_inicio)}
               onChange={(e) => onAtualizar(ws, "contrato_inicio", mesParaData(e.target.value))}
-              className="rounded px-1 py-0.5 text-foreground outline-none [color-scheme:dark] hover:bg-white/8 focus:bg-white/8"
+              className="w-[6.5rem] min-w-0 rounded px-1 py-0.5 text-foreground outline-none [color-scheme:dark] hover:bg-white/8 focus:bg-white/8"
             />
           </label>
           {ws.status_contrato !== "ativo" && (
-            <label className="flex items-center gap-1 text-muted">
+            <label className="flex min-w-0 items-center gap-1 text-muted">
               até
               <input
                 type="month"
                 value={dataParaMes(ws.contrato_fim)}
                 onChange={(e) => onAtualizar(ws, "contrato_fim", mesParaData(e.target.value))}
-                className="rounded px-1 py-0.5 text-foreground outline-none [color-scheme:dark] hover:bg-white/8 focus:bg-white/8"
+                className="w-[6.5rem] min-w-0 rounded px-1 py-0.5 text-foreground outline-none [color-scheme:dark] hover:bg-white/8 focus:bg-white/8"
               />
             </label>
           )}

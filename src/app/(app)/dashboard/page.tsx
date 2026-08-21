@@ -48,6 +48,7 @@ export default function DashboardPage() {
   const [modal, setModal] = useState<{ taskId: string; boardId: string; columns: Column[] } | null>(null);
 
   const { inicio, fim } = useMemo(() => intervaloDoPeriodo(periodo, personalizado), [periodo, personalizado]);
+  const totalAno = useMemo(() => receita.reduce((soma, r) => soma + r.total, 0), [receita]);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -150,11 +151,17 @@ export default function DashboardPage() {
         metrics && (
           <div className="flex flex-col gap-6">
             {/* Bloco 1 — Previsibilidade financeira */}
-            <section className="glass rounded-2xl border-l-2 border-l-accent-ring p-6 text-foreground">
-              <p className="text-sm text-muted">Receita Recorrente Mensal · agora</p>
-              <p className="mt-1 text-4xl font-semibold tracking-tight tabular-nums">
-                {metrics.mrr_total === null ? "—" : formatoMoeda.format(metrics.mrr_total)}
-              </p>
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="glass rounded-2xl border-l-2 border-l-accent-ring p-6 text-foreground">
+                <p className="text-sm text-muted">Receita Recorrente Mensal · agora</p>
+                <p className="mt-1 text-4xl font-semibold tracking-tight tabular-nums">
+                  {metrics.mrr_total === null ? "—" : formatoMoeda.format(metrics.mrr_total)}
+                </p>
+              </div>
+              <div className="glass rounded-2xl border-l-2 border-l-accent-ring p-6 text-foreground">
+                <p className="text-sm text-muted">Faturado em {new Date().getFullYear()} · até hoje</p>
+                <p className="mt-1 text-4xl font-semibold tracking-tight tabular-nums">{formatoMoeda.format(totalAno)}</p>
+              </div>
             </section>
 
             {/* Ganhos — histórico do ano atual, cresce mês a mês sozinho */}
@@ -282,7 +289,10 @@ function Painel({ titulo, subtitulo, children }: { titulo: string; subtitulo: st
 function SkeletonDashboard() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="h-28 animate-pulse rounded-2xl bg-white/5" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="h-28 animate-pulse rounded-2xl bg-white/5" />
+        <div className="h-28 animate-pulse rounded-2xl bg-white/5" />
+      </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="h-28 animate-pulse rounded-2xl bg-white/5" />

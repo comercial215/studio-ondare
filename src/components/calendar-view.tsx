@@ -33,6 +33,16 @@ export default function CalendarView({
   const [mes, setMes] = useState(hoje.getMonth());
   const [ano, setAno] = useState(hoje.getFullYear());
   const [modal, setModal] = useState<{ taskId: string; boardId: string } | null>(null);
+  const [diasExpandidos, setDiasExpandidos] = useState<Set<string>>(new Set());
+
+  function alternarExpandido(chave: string) {
+    setDiasExpandidos((prev) => {
+      const novo = new Set(prev);
+      if (novo.has(chave)) novo.delete(chave);
+      else novo.add(chave);
+      return novo;
+    });
+  }
 
   const dias = useMemo(() => {
     const primeiroDia = new Date(ano, mes, 1);
@@ -119,6 +129,8 @@ export default function CalendarView({
             const doMes = dia.getMonth() === mes;
             const ehHoje = chave === hoje.toISOString().slice(0, 10);
             const tarefasDoDia = tarefasPorDia[chave] ?? [];
+            const expandido = diasExpandidos.has(chave);
+            const visiveis = expandido ? tarefasDoDia : tarefasDoDia.slice(0, 3);
 
             return (
               <div
@@ -135,7 +147,7 @@ export default function CalendarView({
                   {dia.getDate()}
                 </span>
                 <div className="mt-1 flex flex-col gap-1">
-                  {tarefasDoDia.slice(0, 3).map((t) => (
+                  {visiveis.map((t) => (
                     <button
                       key={t.id}
                       onClick={() => setModal({ taskId: t.id, boardId: t.board_id })}
@@ -147,7 +159,12 @@ export default function CalendarView({
                     </button>
                   ))}
                   {tarefasDoDia.length > 3 && (
-                    <span className="text-[11px] text-muted">+{tarefasDoDia.length - 3} outras</span>
+                    <button
+                      onClick={() => alternarExpandido(chave)}
+                      className="text-left text-[11px] font-medium text-accent-ring hover:underline"
+                    >
+                      {expandido ? "recuar" : `+${tarefasDoDia.length - 3} outras`}
+                    </button>
                   )}
                 </div>
               </div>
