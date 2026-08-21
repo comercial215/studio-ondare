@@ -17,6 +17,7 @@ export default function Equipe({ workspaceId, legenda, compacto }: EquipeProps) 
   const supabase = createClient();
   const [membros, setMembros] = useState<TeamMember[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [erroCarregar, setErroCarregar] = useState<string | null>(null);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [cargo, setCargo] = useState("");
@@ -25,8 +26,13 @@ export default function Equipe({ workspaceId, legenda, compacto }: EquipeProps) 
   async function carregar() {
     let query = supabase.from("team_members").select("*").order("nome");
     query = workspaceId ? query.eq("workspace_id", workspaceId) : query.is("workspace_id", null);
-    const { data } = await query;
-    setMembros((data ?? []) as TeamMember[]);
+    const { data, error } = await query;
+    if (error) {
+      setErroCarregar(error.message);
+    } else {
+      setErroCarregar(null);
+      setMembros((data ?? []) as TeamMember[]);
+    }
     setCarregando(false);
   }
 
@@ -84,6 +90,15 @@ export default function Equipe({ workspaceId, legenda, compacto }: EquipeProps) 
   return (
     <div>
       {legenda && <p className="mb-4 text-sm text-muted">{legenda}</p>}
+
+      {erroCarregar && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-alert/30 bg-alert-bg p-4 text-sm text-alert">
+          <span>Não foi possível carregar: {erroCarregar}</span>
+          <button onClick={carregar} className="shrink-0 rounded-lg bg-alert px-3 py-1.5 text-white">
+            Tentar de novo
+          </button>
+        </div>
+      )}
 
       <form onSubmit={adicionar} className="glass mb-4 flex flex-wrap items-end gap-2 rounded-xl p-4">
         <div className="flex-1 min-w-[140px]">
